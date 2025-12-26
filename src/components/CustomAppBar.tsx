@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -12,10 +13,42 @@ import { useTaskStore, useIsNotionConnected } from '../store/taskStore';
 import { Colors, Spacing, FontSizes } from '../constants/theme';
 import { NativeContextMenu, MenuOption } from './native';
 
+// Try to import GlassView for Liquid Glass effect
+let GlassView: any = null;
+let isLiquidGlassAvailable: () => boolean = () => false;
+
+try {
+  const glassModule = require('expo-glass-effect');
+  GlassView = glassModule.GlassView;
+  isLiquidGlassAvailable = glassModule.isLiquidGlassAvailable;
+} catch (e) {
+  // Glass effect not available
+}
+
 interface CustomAppBarProps {
   onOpenViewSettings: () => void;
   onOpenSettings: () => void;
 }
+
+// Glass icon wrapper component
+const GlassIconWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const useGlass = Platform.OS === 'ios' && GlassView && isLiquidGlassAvailable();
+
+  if (useGlass) {
+    return (
+      <GlassView style={styles.glassIconContainer} glassEffectStyle="regular">
+        {children}
+      </GlassView>
+    );
+  }
+
+  // Fallback for non-iOS or when glass is not available
+  return (
+    <View style={styles.iconContainer}>
+      {children}
+    </View>
+  );
+};
 
 export const CustomAppBar: React.FC<CustomAppBarProps> = ({
   onOpenViewSettings,
@@ -117,8 +150,10 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
     }
 
     return (
-      <Pressable style={styles.syncIndicator} onPress={showSyncDetails}>
-        <Ionicons name={iconName} size={22} color={iconColor} />
+      <Pressable onPress={showSyncDetails}>
+        <GlassIconWrapper>
+          <Ionicons name={iconName} size={22} color={iconColor} />
+        </GlassIconWrapper>
       </Pressable>
     );
   };
@@ -143,7 +178,9 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
       <View style={styles.rightActions}>
         {renderSyncIndicator()}
         <NativeContextMenu options={menuOptions}>
-          <Ionicons name="menu" size={24} color={Colors.light.text} />
+          <GlassIconWrapper>
+            <Ionicons name="menu" size={24} color={Colors.light.text} />
+          </GlassIconWrapper>
         </NativeContextMenu>
       </View>
     </View>
@@ -170,7 +207,19 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.md,
     fontWeight: '500',
   },
-  syncIndicator: {
-    padding: Spacing.xs,
+  glassIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
 });
