@@ -1,98 +1,384 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useCallback, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, RefreshControl, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { TaskTile } from '../../src/components/TaskTile';
+import { TaskList } from '../../src/components/TaskList';
+import { FloatingActionButton } from '../../src/components/FloatingActionButton';
+import { CustomAppBar } from '../../src/components/CustomAppBar';
+import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
+import { MoveToFolderSheet } from '../../src/components/MoveToFolderSheet';
+import { useTaskStore, useIncompleteTasks, useCompletedTasks } from '../../src/store/taskStore';
+import { notionAutoSync } from '../../src/services/notionService';
+import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
+import { getDayNumber, getMonthNameShort } from '../../src/utils/dates';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function TodayScreen() {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [viewSettingsVisible, setViewSettingsVisible] = useState(false);
+  const [moveToFolderVisible, setMoveToFolderVisible] = useState(false);
+  const {
+    showCompletedInToday,
+    isInitialized,
+    loadAllData,
+    selectionMode,
+    selectedTasks,
+    deleteTasks,
+    clearSelection,
+  } = useTaskStore();
+  const incompleteTasks = useIncompleteTasks();
+  const completedTasks = useCompletedTasks();
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+  const selectedTaskIds = Array.from(selectedTasks);
+  const hasSelection = selectedTaskIds.length > 0;
+
+  const handleDeleteSelected = useCallback(() => {
+    if (!hasSelection) return;
+
+    Alert.alert(
+      'Delete Tasks',
+      `Are you sure you want to delete ${selectedTaskIds.length} task(s)?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            deleteTasks(selectedTaskIds);
+            clearSelection();
+          },
+        },
+      ]
+    );
+  }, [hasSelection, selectedTaskIds, deleteTasks, clearSelection]);
+
+  useEffect(() => {
+    if (!isInitialized) {
+      loadAllData();
+    }
+  }, [isInitialized, loadAllData]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await notionAutoSync.triggerImmediateSync();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  const openSettings = useCallback(() => {
+    router.push('/settings');
+  }, []);
+
+  if (!isInitialized) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show split view if showCompletedInToday is enabled
+  if (showCompletedInToday) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <CustomAppBar
+          onOpenViewSettings={() => setViewSettingsVisible(true)}
+          onOpenSettings={openSettings}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        {/* Header Row */}
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>Today</Text>
+          <View style={styles.dateContainer}>
+            <Text style={styles.dayNumber}>{getDayNumber()}</Text>
+            <Text style={styles.monthName}>{getMonthNameShort()}</Text>
+          </View>
+        </View>
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={Colors.light.primary}
+            />
+          }
+        >
+          {/* Open Tasks Section */}
+          <View style={styles.sectionHeader}>
+            <Ionicons name="close-circle" size={16} color={Colors.light.text} />
+            <Text style={styles.sectionTitle}>Open</Text>
+          </View>
+          <View style={styles.sectionContainer}>
+            {incompleteTasks.length === 0 ? (
+              <View style={styles.emptySectionContainer}>
+                <Text style={styles.emptySectionText}>No open tasks</Text>
+              </View>
+            ) : (
+              <View style={styles.taskListContainer}>
+                {incompleteTasks.map(task => (
+                  <TaskTile key={task.id} task={task} />
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Completed Tasks Section */}
+          <View style={styles.sectionHeader}>
+            <Ionicons name="checkmark-circle" size={16} color={Colors.light.text} />
+            <Text style={styles.sectionTitle}>Completed</Text>
+          </View>
+          <View style={[styles.sectionContainer, styles.completedSection]}>
+            {completedTasks.length === 0 ? (
+              <View style={styles.emptySectionContainer}>
+                <Text style={styles.emptySectionText}>No completed tasks</Text>
+              </View>
+            ) : (
+              <View style={styles.taskListContainer}>
+                {completedTasks.map(task => (
+                  <TaskTile key={task.id} task={task} />
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+
+        {/* Selection Mode FABs */}
+        {selectionMode && hasSelection ? (
+          <View style={styles.selectionFabs}>
+            <Pressable style={styles.moveFab} onPress={() => setMoveToFolderVisible(true)}>
+              <Ionicons name="folder-outline" size={24} color="#FFFFFF" />
+            </Pressable>
+            <Pressable style={styles.deleteFab} onPress={handleDeleteSelected}>
+              <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+            </Pressable>
+          </View>
+        ) : !selectionMode ? (
+          <FloatingActionButton />
+        ) : null}
+
+        <ViewSettingsSheet
+          visible={viewSettingsVisible}
+          onClose={() => setViewSettingsVisible(false)}
+        />
+        <MoveToFolderSheet
+          visible={moveToFolderVisible}
+          onClose={() => setMoveToFolderVisible(false)}
+          taskIds={selectedTaskIds}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  // Default view - only show incomplete tasks
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <CustomAppBar
+        onOpenViewSettings={() => setViewSettingsVisible(true)}
+        onOpenSettings={openSettings}
+      />
+
+      {/* Header Row */}
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Today</Text>
+        <View style={styles.dateContainer}>
+          <Text style={styles.dayNumber}>{getDayNumber()}</Text>
+          <Text style={styles.monthName}>{getMonthNameShort()}</Text>
+        </View>
+      </View>
+
+      {incompleteTasks.length === 0 ? (
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyTitle}>Relax, you don't have anything left</Text>
+          <Text style={styles.emptyTitle}>todo.</Text>
+          <Pressable style={styles.createButton}>
+            <Text style={styles.createButtonText}>Create new task</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <TaskList
+          tasks={incompleteTasks}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
+          emptyMessage="No tasks for today"
+        />
+      )}
+
+      {/* Selection Mode FABs */}
+      {selectionMode && hasSelection ? (
+        <View style={styles.selectionFabs}>
+          <Pressable style={styles.moveFab} onPress={() => setMoveToFolderVisible(true)}>
+            <Ionicons name="folder-outline" size={24} color="#FFFFFF" />
+          </Pressable>
+          <Pressable style={styles.deleteFab} onPress={handleDeleteSelected}>
+            <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+          </Pressable>
+        </View>
+      ) : !selectionMode ? (
+        <FloatingActionButton />
+      ) : null}
+
+      <ViewSettingsSheet
+        visible={viewSettingsVisible}
+        onClose={() => setViewSettingsVisible(false)}
+      />
+      <MoveToFolderSheet
+        visible={moveToFolderVisible}
+        onClose={() => setMoveToFolderVisible(false)}
+        taskIds={selectedTaskIds}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: FontSizes.md,
+    color: Colors.light.textSecondary,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 25,
+    marginBottom: Spacing.md,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: Colors.light.text,
+  },
+  dateContainer: {
+    alignItems: 'center',
+  },
+  dayNumber: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: Colors.light.text,
+    lineHeight: 32,
+  },
+  monthName: {
+    fontSize: 16,
+    color: '#919191',
+    lineHeight: 18,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 100,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingLeft: 16,
+    marginBottom: 12,
     gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.light.text,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  sectionContainer: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 24,
+    paddingVertical: 26,
+    marginBottom: 18,
+    minHeight: 100,
+  },
+  completedSection: {
+    flex: 1,
+    minHeight: 150,
+  },
+  taskListContainer: {
+    paddingVertical: 0,
+  },
+  emptySectionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 80,
+  },
+  emptySectionText: {
+    fontSize: FontSizes.md,
+    color: Colors.light.textSecondary,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: Colors.light.text,
+    textAlign: 'center',
+  },
+  createButton: {
+    marginTop: Spacing.lg,
+    backgroundColor: Colors.light.primary,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: 12,
+  },
+  createButtonText: {
+    color: '#FFFFFF',
+    fontSize: FontSizes.md,
+  },
+  selectionFabs: {
     position: 'absolute',
+    bottom: 90,
+    right: Spacing.lg,
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  moveFab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.light.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  deleteFab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.light.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
 });
