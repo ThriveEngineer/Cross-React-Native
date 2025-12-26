@@ -142,13 +142,10 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ visible, onClose }) => {
     };
   });
 
-  // Setup view (before timer starts)
+  // Setup view (before timer starts) - matches Flutter layout
   const renderSetupView = () => (
     <View style={styles.setupContainer}>
       <View style={styles.dragHandle} />
-
-      <Text style={styles.title}>Focus Timer</Text>
-      <Text style={styles.subtitle}>Stay focused and productive</Text>
 
       {/* Duration adjuster */}
       <View style={styles.durationContainer}>
@@ -165,8 +162,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ visible, onClose }) => {
         </Pressable>
 
         <View style={styles.durationDisplay}>
-          <Text style={styles.durationText}>{duration}</Text>
-          <Text style={styles.durationLabel}>minutes</Text>
+          <Text style={styles.durationText}>{formatTime(duration * 60)}</Text>
         </View>
 
         <Pressable
@@ -180,33 +176,6 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ visible, onClose }) => {
             color={duration >= 180 ? Colors.light.textSecondary : Colors.light.text}
           />
         </Pressable>
-      </View>
-
-      {/* Quick presets */}
-      <View style={styles.presetsContainer}>
-        {[15, 25, 45, 60].map(preset => (
-          <Pressable
-            key={preset}
-            style={[
-              styles.presetButton,
-              duration === preset && styles.presetButtonActive,
-            ]}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setDuration(preset);
-              setRemainingSeconds(preset * 60);
-            }}
-          >
-            <Text
-              style={[
-                styles.presetText,
-                duration === preset && styles.presetTextActive,
-              ]}
-            >
-              {preset}m
-            </Text>
-          </Pressable>
-        ))}
       </View>
 
       {/* Start button */}
@@ -284,7 +253,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
     alignItems: 'center',
-    height: 242,
     width: 365,
     alignSelf: 'center',
   },
@@ -293,23 +261,12 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: Colors.light.border,
     borderRadius: 2,
-    marginBottom: Spacing.lg,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-    marginBottom: Spacing.xs,
-  },
-  subtitle: {
-    fontSize: FontSizes.md,
-    color: Colors.light.textSecondary,
     marginBottom: Spacing.xl,
   },
   durationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   adjustButton: {
     width: 56,
@@ -320,7 +277,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   durationDisplay: {
-    width: 120,
+    width: 160,
     alignItems: 'center',
     marginHorizontal: Spacing.lg,
   },
@@ -328,32 +285,6 @@ const styles = StyleSheet.create({
     fontSize: 72,
     fontWeight: 'bold',
     color: Colors.light.text,
-  },
-  durationLabel: {
-    fontSize: FontSizes.sm,
-    color: Colors.light.textSecondary,
-  },
-  presetsContainer: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginBottom: Spacing.xl,
-  },
-  presetButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 20,
-    backgroundColor: Colors.light.cardBackground,
-  },
-  presetButtonActive: {
-    backgroundColor: Colors.light.primary,
-  },
-  presetText: {
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-    color: Colors.light.text,
-  },
-  presetTextActive: {
-    color: '#FFFFFF',
   },
   startButton: {
     flexDirection: 'row',
