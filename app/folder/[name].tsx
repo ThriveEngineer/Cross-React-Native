@@ -19,6 +19,32 @@ import { useTaskStore } from '../../src/store/taskStore';
 import { notionAutoSync } from '../../src/services/notionService';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
 
+// Icon mapping for folders
+const FOLDER_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
+  'inbox': 'mail-outline',
+  'heart': 'heart-outline',
+  'check-square': 'checkbox-outline',
+  'folder': 'folder-outline',
+  'star': 'star-outline',
+  'bookmark': 'bookmark-outline',
+  'flag': 'flag-outline',
+  'briefcase': 'briefcase-outline',
+  'home': 'home-outline',
+  'cart': 'cart-outline',
+  'gift': 'gift-outline',
+  'bulb': 'bulb-outline',
+  'fitness': 'fitness-outline',
+  'musical-notes': 'musical-notes-outline',
+  'camera': 'camera-outline',
+  'airplane': 'airplane-outline',
+  'car': 'car-outline',
+  'restaurant': 'restaurant-outline',
+  'cafe': 'cafe-outline',
+  'medical': 'medical-outline',
+  'school': 'school-outline',
+  'library': 'library-outline',
+};
+
 export default function FolderDetailScreen() {
   const { name } = useLocalSearchParams<{ name: string }>();
   const folderName = decodeURIComponent(name || 'Inbox');
@@ -72,7 +98,7 @@ export default function FolderDetailScreen() {
   // Get folder info
   const folder = folders.find(f => f.name === folderName);
   const iconName = folder?.icon
-    ? ((folder.icon + '-outline') as keyof typeof Ionicons.glyphMap)
+    ? (FOLDER_ICON_MAP[folder.icon] || 'folder-outline')
     : 'folder-outline';
 
   const handleRefresh = useCallback(async () => {
@@ -118,33 +144,21 @@ export default function FolderDetailScreen() {
     [selectedTasks, moveTasksToFolder, clearSelection]
   );
 
+  const hasSelection = selectedTasks.size > 0;
+
   const Header = () => (
     <View style={styles.header}>
       <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backButton}>
         <Ionicons name="chevron-back" size={24} color={Colors.light.text} />
       </Pressable>
       <View style={styles.headerCenter}>
-        <Ionicons name={iconName} size={20} color={Colors.light.text} />
+        <Ionicons name={iconName} size={22} color={Colors.light.text} />
         <Text style={styles.title} numberOfLines={1}>
           {folderName}
         </Text>
       </View>
       <View style={styles.headerActions}>
-        {selectionMode ? (
-          <>
-            <Pressable onPress={() => setMoveToFolderVisible(true)} hitSlop={10}>
-              <Ionicons name="folder-outline" size={24} color={Colors.light.primary} />
-            </Pressable>
-            <Pressable onPress={handleDeleteSelected} hitSlop={10}>
-              <Ionicons name="trash-outline" size={24} color={Colors.light.error} />
-            </Pressable>
-            <Pressable onPress={clearSelection} hitSlop={10}>
-              <Ionicons name="close" size={24} color={Colors.light.text} />
-            </Pressable>
-          </>
-        ) : (
-          <Text style={styles.taskCount}>{folderTasks.length}</Text>
-        )}
+        <Text style={styles.taskCount}>{folderTasks.length}</Text>
       </View>
     </View>
   );
@@ -162,6 +176,32 @@ export default function FolderDetailScreen() {
           icon="folder-open-outline"
         />
         <FloatingActionButton defaultFolder={folderName} />
+        {selectionMode && (
+          <View style={styles.selectionActionsContainer}>
+            <Pressable
+              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+              onPress={() => hasSelection && setMoveToFolderVisible(true)}
+              disabled={!hasSelection}
+            >
+              <Ionicons
+                name="folder-outline"
+                size={24}
+                color={hasSelection ? Colors.light.primary : Colors.light.textSecondary}
+              />
+            </Pressable>
+            <Pressable
+              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+              onPress={() => hasSelection && handleDeleteSelected()}
+              disabled={!hasSelection}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={24}
+                color={hasSelection ? Colors.light.error : Colors.light.textSecondary}
+              />
+            </Pressable>
+          </View>
+        )}
         <MoveToFolderSheet
           visible={moveToFolderVisible}
           onClose={() => setMoveToFolderVisible(false)}
@@ -182,6 +222,32 @@ export default function FolderDetailScreen() {
         emptyMessage={`No tasks in ${folderName}`}
       />
       <FloatingActionButton defaultFolder={folderName} />
+      {selectionMode && (
+        <View style={styles.selectionActionsContainer}>
+          <Pressable
+            style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+            onPress={() => hasSelection && setMoveToFolderVisible(true)}
+            disabled={!hasSelection}
+          >
+            <Ionicons
+              name="folder-outline"
+              size={24}
+              color={hasSelection ? Colors.light.primary : Colors.light.textSecondary}
+            />
+          </Pressable>
+          <Pressable
+            style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+            onPress={() => hasSelection && handleDeleteSelected()}
+            disabled={!hasSelection}
+          >
+            <Ionicons
+              name="trash-outline"
+              size={24}
+              color={hasSelection ? Colors.light.error : Colors.light.textSecondary}
+            />
+          </Pressable>
+        </View>
+      )}
       <MoveToFolderSheet
         visible={moveToFolderVisible}
         onClose={() => setMoveToFolderVisible(false)}
@@ -232,5 +298,31 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.sm,
     overflow: 'hidden',
+  },
+  selectionActionsContainer: {
+    position: 'absolute',
+    bottom: 76,
+    right: 88,
+    flexDirection: 'row',
+    backgroundColor: Colors.light.surface,
+    borderRadius: 28,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  selectionActionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectionActionDisabled: {
+    opacity: 0.5,
   },
 });

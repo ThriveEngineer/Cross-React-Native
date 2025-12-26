@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
   Pressable,
   ScrollView,
 } from 'react-native';
@@ -11,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTaskStore } from '../store/taskStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
+import { NativeBottomSheet } from './native';
 
 // Icon mapping for folders
 const FOLDER_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -65,48 +65,37 @@ export const MoveToFolderSheet: React.FC<MoveToFolderSheetProps> = ({
   }, [taskIds, moveTasksToFolder, clearSelection, onClose, onMoveComplete]);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.content} onPress={e => e.stopPropagation()}>
-          <View style={styles.dragHandle} />
+    <NativeBottomSheet visible={visible} onClose={onClose}>
+      <Text style={styles.title}>Move to folder</Text>
+      <Text style={styles.subtitle}>
+        {taskIds.length} task{taskIds.length !== 1 ? 's' : ''} selected
+      </Text>
 
-          <Text style={styles.title}>Move to folder</Text>
-          <Text style={styles.subtitle}>
-            {taskIds.length} task{taskIds.length !== 1 ? 's' : ''} selected
-          </Text>
+      <ScrollView
+        style={styles.folderList}
+        showsVerticalScrollIndicator={false}
+      >
+        {availableFolders.map((folder) => {
+          const iconName = FOLDER_ICON_MAP[folder.icon] || 'folder-outline';
+          return (
+            <Pressable
+              key={folder.id}
+              style={styles.folderRow}
+              onPress={() => handleFolderSelect(folder.name)}
+            >
+              <Ionicons name={iconName} size={24} color={Colors.light.text} />
+              <Text style={styles.folderName}>{folder.name}</Text>
+              <View style={styles.spacer} />
+              <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+            </Pressable>
+          );
+        })}
+      </ScrollView>
 
-          <ScrollView
-            style={styles.folderList}
-            showsVerticalScrollIndicator={false}
-          >
-            {availableFolders.map((folder) => {
-              const iconName = FOLDER_ICON_MAP[folder.icon] || 'folder-outline';
-              return (
-                <Pressable
-                  key={folder.id}
-                  style={styles.folderRow}
-                  onPress={() => handleFolderSelect(folder.name)}
-                >
-                  <Ionicons name={iconName} size={24} color={Colors.light.text} />
-                  <Text style={styles.folderName}>{folder.name}</Text>
-                  <View style={styles.spacer} />
-                  <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-
-          <Pressable style={styles.cancelButton} onPress={onClose}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </Pressable>
-        </Pressable>
+      <Pressable style={styles.cancelButton} onPress={onClose}>
+        <Text style={styles.cancelButtonText}>Cancel</Text>
       </Pressable>
-    </Modal>
+    </NativeBottomSheet>
   );
 };
 
@@ -117,10 +106,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   content: {
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: Colors.light.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: 40,
     maxHeight: '70%',
   },

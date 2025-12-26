@@ -279,13 +279,15 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     overflow: 'hidden',
     marginBottom: Spacing.lg,
+    width: 353,
+    alignSelf: 'center',
   },
   integrationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    gap: Spacing.md,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    gap: 13,
   },
   disabledRow: {
     opacity: 0.5,
@@ -331,7 +333,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 0.5,
-    backgroundColor: Colors.light.border,
+    backgroundColor: '#C2C2C2',
     marginLeft: 50,
   },
   configSection: {
@@ -347,7 +349,7 @@ const styles = StyleSheet.create({
   },
   configContainer: {
     backgroundColor: Colors.light.surface,
-    borderRadius: 18,
+    borderRadius: 12,
     padding: Spacing.lg,
   },
   inputGroup: {

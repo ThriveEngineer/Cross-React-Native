@@ -40,14 +40,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
   },
   title: {
-    fontSize: FontSizes.xl,
+    fontSize: 22,
     fontWeight: '600',
     color: Colors.light.text,
     textAlign: 'center',
     marginTop: Spacing.lg,
   },
   subtitle: {
-    fontSize: FontSizes.md,
+    fontSize: 22,
     color: Colors.light.textSecondary,
     textAlign: 'center',
     marginTop: Spacing.sm,

@@ -1,16 +1,16 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   Pressable,
   StyleSheet,
-  Modal,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTaskStore, useIsNotionConnected } from '../store/taskStore';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
+import { Colors, Spacing, FontSizes } from '../constants/theme';
+import { NativeContextMenu, MenuOption } from './native';
 
 interface CustomAppBarProps {
   onOpenViewSettings: () => void;
@@ -24,11 +24,9 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
   const {
     selectionMode,
     toggleSelectionMode,
-    selectedTasks,
     selectAllTasks,
     clearSelection,
   } = useTaskStore();
-  const [menuVisible, setMenuVisible] = useState(false);
   const isNotionConnected = useIsNotionConnected();
   const { syncState } = useTaskStore();
 
@@ -42,23 +40,32 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
     clearSelection();
   }, [clearSelection]);
 
-  const handleMenuSelect = useCallback(() => {
-    setMenuVisible(false);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    toggleSelectionMode();
-  }, [toggleSelectionMode]);
-
-  const handleMenuView = useCallback(() => {
-    setMenuVisible(false);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onOpenViewSettings();
-  }, [onOpenViewSettings]);
-
-  const handleMenuSettings = useCallback(() => {
-    setMenuVisible(false);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onOpenSettings();
-  }, [onOpenSettings]);
+  const menuOptions: MenuOption[] = [
+    {
+      label: 'View',
+      icon: 'eye-outline',
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onOpenViewSettings();
+      },
+    },
+    {
+      label: 'Select',
+      icon: 'checkbox-outline',
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        toggleSelectionMode();
+      },
+    },
+    {
+      label: 'Settings',
+      icon: 'settings-outline',
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onOpenSettings();
+      },
+    },
+  ];
 
   const showSyncDetails = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -111,7 +118,7 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
 
     return (
       <Pressable style={styles.syncIndicator} onPress={showSyncDetails}>
-        <Ionicons name={iconName} size={20} color={iconColor} />
+        <Ionicons name={iconName} size={22} color={iconColor} />
       </Pressable>
     );
   };
@@ -135,46 +142,10 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
       <View style={styles.spacer} />
       <View style={styles.rightActions}>
         {renderSyncIndicator()}
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            setMenuVisible(true);
-          }}
-          hitSlop={10}
-        >
+        <NativeContextMenu options={menuOptions}>
           <Ionicons name="menu" size={24} color={Colors.light.text} />
-        </Pressable>
+        </NativeContextMenu>
       </View>
-
-      {/* Menu Modal */}
-      <Modal
-        visible={menuVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <Pressable
-          style={styles.menuOverlay}
-          onPress={() => setMenuVisible(false)}
-        >
-          <View style={styles.menuContainer}>
-            <Pressable style={styles.menuItem} onPress={handleMenuView}>
-              <Ionicons name="eye-outline" size={20} color={Colors.light.text} />
-              <Text style={styles.menuText}>View</Text>
-            </Pressable>
-            <View style={styles.menuDivider} />
-            <Pressable style={styles.menuItem} onPress={handleMenuSelect}>
-              <Ionicons name="checkbox-outline" size={20} color={Colors.light.text} />
-              <Text style={styles.menuText}>Select</Text>
-            </Pressable>
-            <View style={styles.menuDivider} />
-            <Pressable style={styles.menuItem} onPress={handleMenuSettings}>
-              <Ionicons name="settings-outline" size={20} color={Colors.light.text} />
-              <Text style={styles.menuText}>Settings</Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
     </View>
   );
 };
@@ -192,7 +163,7 @@ const styles = StyleSheet.create({
   rightActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
+    gap: 15,
   },
   actionText: {
     color: Colors.light.primary,
@@ -201,37 +172,5 @@ const styles = StyleSheet.create({
   },
   syncIndicator: {
     padding: Spacing.xs,
-  },
-  menuOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    paddingTop: 100,
-    paddingRight: Spacing.lg,
-  },
-  menuContainer: {
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.md,
-    width: 200,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    gap: Spacing.md,
-  },
-  menuText: {
-    fontSize: FontSizes.md,
-    color: Colors.light.text,
-  },
-  menuDivider: {
-    height: 0.5,
-    backgroundColor: Colors.light.border,
   },
 });

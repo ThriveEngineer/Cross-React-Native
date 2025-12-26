@@ -131,12 +131,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.surface,
     borderRadius: 18,
     overflow: 'hidden',
+    width: 353,
+    alignSelf: 'center',
   },
   themeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
   },
   themeInfo: {
     flex: 1,
@@ -153,8 +155,8 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 0.5,
-    backgroundColor: Colors.light.border,
-    marginLeft: Spacing.md,
+    backgroundColor: '#C2C2C2',
+    marginLeft: 50,
   },
   infoText: {
     fontSize: FontSizes.sm,

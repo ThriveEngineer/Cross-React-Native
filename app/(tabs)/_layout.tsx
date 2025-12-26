@@ -10,15 +10,13 @@ export default function TabLayout() {
         tabBarInactiveTintColor: Colors.light.textSecondary,
         tabBarStyle: {
           backgroundColor: Colors.light.surface,
-          borderTopColor: Colors.light.border,
-          height: 85,
-          paddingBottom: 25,
-          paddingTop: 10,
+          borderTopColor: '#CACACA',
+          borderTopWidth: 0.5,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
         },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-        },
+        tabBarShowLabel: false,
         headerShown: false,
       }}
     >
@@ -26,8 +24,12 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Today',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="today-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "today" : "today-outline"}
+              size={focused ? 30 : 28}
+              color={color}
+            />
           ),
         }}
       />
@@ -35,8 +37,12 @@ export default function TabLayout() {
         name="upcoming"
         options={{
           title: 'Upcoming',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "calendar" : "calendar-outline"}
+              size={focused ? 30 : 28}
+              color={color}
+            />
           ),
         }}
       />
@@ -44,8 +50,12 @@ export default function TabLayout() {
         name="folders"
         options={{
           title: 'Folders',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="folder-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "folder" : "folder-outline"}
+              size={focused ? 30 : 28}
+              color={color}
+            />
           ),
         }}
       />

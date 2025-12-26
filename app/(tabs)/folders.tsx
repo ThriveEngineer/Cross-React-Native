@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F3F3F3',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 12,
     marginBottom: 8,
@@ -377,8 +377,8 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 90,
-    right: Spacing.lg,
+    bottom: 76,
+    right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -398,8 +398,8 @@ const styles = StyleSheet.create({
   },
   deleteFab: {
     position: 'absolute',
-    bottom: 90,
-    right: Spacing.lg,
+    bottom: 76,
+    right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -418,10 +418,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: Colors.light.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: 40,
   },
   dragHandle: {

@@ -160,18 +160,18 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    marginHorizontal: Spacing.md,
-    marginVertical: Spacing.xs,
-    borderRadius: BorderRadius.md,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    marginHorizontal: 14,
+    marginVertical: 4,
+    borderRadius: 12,
     backgroundColor: 'transparent',
   },
   strangerThingsContainer: {
-    backgroundColor: 'rgba(255, 0, 0, 0.15)',
+    backgroundColor: 'rgba(255, 0, 0, 0.3)',
   },
   selectedContainer: {
-    backgroundColor: 'rgba(29, 29, 29, 0.1)',
+    backgroundColor: 'rgba(29, 29, 29, 0.2)',
   },
   checkbox: {
     width: 20,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    marginLeft: Spacing.md,
+    marginLeft: 15,
   },
   taskName: {
     fontSize: FontSizes.md,
@@ -215,6 +215,6 @@ const styles = StyleSheet.create({
   folderName: {
     fontSize: FontSizes.sm,
     color: Colors.light.textSecondary,
-    marginLeft: Spacing.sm,
+    marginLeft: 10,
   },
 });

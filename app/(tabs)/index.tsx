@@ -153,19 +153,36 @@ export default function TodayScreen() {
           </View>
         </ScrollView>
 
-        {/* Selection Mode FABs */}
-        {selectionMode && hasSelection ? (
-          <View style={styles.selectionFabs}>
-            <Pressable style={styles.moveFab} onPress={() => setMoveToFolderVisible(true)}>
-              <Ionicons name="folder-outline" size={24} color="#FFFFFF" />
+        {/* FAB - always visible, changes based on selection mode */}
+        <FloatingActionButton />
+
+        {/* Selection Mode Action Buttons */}
+        {selectionMode && (
+          <View style={styles.selectionActionsContainer}>
+            <Pressable
+              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+              onPress={() => hasSelection && setMoveToFolderVisible(true)}
+              disabled={!hasSelection}
+            >
+              <Ionicons
+                name="folder-outline"
+                size={24}
+                color={hasSelection ? Colors.light.primary : Colors.light.textSecondary}
+              />
             </Pressable>
-            <Pressable style={styles.deleteFab} onPress={handleDeleteSelected}>
-              <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+            <Pressable
+              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+              onPress={() => hasSelection && handleDeleteSelected()}
+              disabled={!hasSelection}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={24}
+                color={hasSelection ? Colors.light.error : Colors.light.textSecondary}
+              />
             </Pressable>
           </View>
-        ) : !selectionMode ? (
-          <FloatingActionButton />
-        ) : null}
+        )}
 
         <ViewSettingsSheet
           visible={viewSettingsVisible}
@@ -214,19 +231,36 @@ export default function TodayScreen() {
         />
       )}
 
-      {/* Selection Mode FABs */}
-      {selectionMode && hasSelection ? (
-        <View style={styles.selectionFabs}>
-          <Pressable style={styles.moveFab} onPress={() => setMoveToFolderVisible(true)}>
-            <Ionicons name="folder-outline" size={24} color="#FFFFFF" />
+      {/* FAB - always visible, changes based on selection mode */}
+      <FloatingActionButton />
+
+      {/* Selection Mode Action Buttons */}
+      {selectionMode && (
+        <View style={styles.selectionActionsContainer}>
+          <Pressable
+            style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+            onPress={() => hasSelection && setMoveToFolderVisible(true)}
+            disabled={!hasSelection}
+          >
+            <Ionicons
+              name="folder-outline"
+              size={24}
+              color={hasSelection ? Colors.light.primary : Colors.light.textSecondary}
+            />
           </Pressable>
-          <Pressable style={styles.deleteFab} onPress={handleDeleteSelected}>
-            <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+          <Pressable
+            style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+            onPress={() => hasSelection && handleDeleteSelected()}
+            disabled={!hasSelection}
+          >
+            <Ionicons
+              name="trash-outline"
+              size={24}
+              color={hasSelection ? Colors.light.error : Colors.light.textSecondary}
+            />
           </Pressable>
         </View>
-      ) : !selectionMode ? (
-        <FloatingActionButton />
-      ) : null}
+      )}
 
       <ViewSettingsSheet
         visible={viewSettingsVisible}
@@ -302,15 +336,13 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
   },
   sectionContainer: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 24,
-    paddingVertical: 26,
-    marginBottom: 18,
-    minHeight: 100,
+    backgroundColor: '#F3F3F3',
+    borderRadius: 12,
+    paddingVertical: 8,
+    marginBottom: 16,
   },
   completedSection: {
-    flex: 1,
-    minHeight: 150,
+    marginBottom: 16,
   },
   taskListContainer: {
     paddingVertical: 0,
@@ -348,37 +380,30 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: FontSizes.md,
   },
-  selectionFabs: {
+  selectionActionsContainer: {
     position: 'absolute',
-    bottom: 90,
-    right: Spacing.lg,
+    bottom: 76,
+    right: 88,
     flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  moveFab: {
-    width: 56,
-    height: 56,
+    backgroundColor: Colors.light.surface,
     borderRadius: 28,
-    backgroundColor: Colors.light.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  selectionActionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
   },
-  deleteFab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.light.error,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
+  selectionActionDisabled: {
+    opacity: 0.5,
   },
 });

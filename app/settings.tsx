@@ -163,13 +163,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.surface,
     borderRadius: 18,
     overflow: 'hidden',
+    width: 353,
+    alignSelf: 'center',
   },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    gap: Spacing.md,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    gap: 13,
   },
   settingRowDisabled: {
     opacity: 0.6,
@@ -191,7 +193,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 0.5,
-    backgroundColor: Colors.light.border,
+    backgroundColor: '#C2C2C2',
     marginLeft: 50,
   },
 });
