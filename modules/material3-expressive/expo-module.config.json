@@ -1,0 +1,6 @@
+{
+  "platforms": ["android"],
+  "android": {
+    "modules": ["expo.modules.material3expressive.Material3ExpressiveModule"]
+  }
+}
