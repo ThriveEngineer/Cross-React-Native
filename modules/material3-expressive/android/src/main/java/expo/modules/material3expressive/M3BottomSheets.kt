@@ -84,6 +84,8 @@ object IconMapper {
         "help" to Icons.Outlined.Help,
         "warning" to Icons.Outlined.Warning,
         "error" to Icons.Outlined.Error,
+        "sort" to Icons.Outlined.Sort,
+        "grid" to Icons.Outlined.Apps,
     )
 
     fun getIcon(name: String): ImageVector {
@@ -345,101 +347,110 @@ private fun SettingsSheetContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 32.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Title
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
-
-        // Settings card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        // Title (only show if not empty)
+        if (title.isNotEmpty()) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp)
             )
-        ) {
-            Column {
-                // Toggles
-                toggles.forEachIndexed { index, toggle ->
-                    ListItem(
-                        headlineContent = { Text(toggle.title) },
-                        leadingContent = toggle.icon?.let {
-                            { Icon(IconMapper.getIcon(it), contentDescription = null) }
-                        },
-                        trailingContent = {
-                            Switch(
-                                checked = toggleStates[toggle.id] ?: toggle.value,
-                                onCheckedChange = { onToggleChange(toggle.id, it) },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                                    checkedTrackColor = MaterialTheme.colorScheme.primary,
-                                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    uncheckedBorderColor = MaterialTheme.colorScheme.outline
-                                )
-                            )
-                        }
-                    )
-                    if (index < toggles.lastIndex || dropdowns.isNotEmpty()) {
-                        HorizontalDivider(modifier = Modifier.padding(start = if (toggle.icon != null) 56.dp else 16.dp))
-                    }
-                }
+        }
 
-                // Dropdowns
-                dropdowns.forEachIndexed { index, dropdown ->
-                    var expanded by remember { mutableStateOf(false) }
-                    val selectedIndex = dropdownStates[dropdown.id] ?: dropdown.selectedIndex
-
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = it }
-                    ) {
+        // Toggles card (if any toggles exist)
+        if (toggles.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column {
+                    toggles.forEachIndexed { index, toggle ->
                         ListItem(
-                            headlineContent = { Text(dropdown.title) },
-                            leadingContent = dropdown.icon?.let {
+                            headlineContent = { Text(toggle.title) },
+                            leadingContent = toggle.icon?.let {
                                 { Icon(IconMapper.getIcon(it), contentDescription = null) }
                             },
                             trailingContent = {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = dropdown.options.getOrElse(selectedIndex) { "" },
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                Switch(
+                                    checked = toggleStates[toggle.id] ?: toggle.value,
+                                    onCheckedChange = { onToggleChange(toggle.id, it) },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        uncheckedBorderColor = MaterialTheme.colorScheme.outline
                                     )
-                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                                }
-                            },
-                            modifier = Modifier.menuAnchor()
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            dropdown.options.forEachIndexed { optIndex, option ->
-                                DropdownMenuItem(
-                                    text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
-                                    onClick = {
-                                        onDropdownChange(dropdown.id, optIndex)
-                                        expanded = false
-                                    },
-                                    leadingIcon = if (optIndex == selectedIndex) {
-                                        { Icon(Icons.Outlined.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
-                                    } else null
                                 )
                             }
+                        )
+                        if (index < toggles.lastIndex) {
+                            HorizontalDivider(modifier = Modifier.padding(start = if (toggle.icon != null) 56.dp else 16.dp))
                         }
                     }
+                }
+            }
+        }
 
-                    if (index < dropdowns.lastIndex) {
-                        HorizontalDivider(modifier = Modifier.padding(start = if (dropdown.icon != null) 56.dp else 16.dp))
+        // Each dropdown in its own card
+        dropdowns.forEach { dropdown ->
+            var expanded by remember { mutableStateOf(false) }
+            val selectedIndex = dropdownStates[dropdown.id] ?: dropdown.selectedIndex
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it }
+                ) {
+                    ListItem(
+                        headlineContent = { Text(dropdown.title) },
+                        leadingContent = dropdown.icon?.let {
+                            { Icon(IconMapper.getIcon(it), contentDescription = null) }
+                        },
+                        trailingContent = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = dropdown.options.getOrElse(selectedIndex) { "" },
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                            }
+                        },
+                        modifier = Modifier.menuAnchor()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        dropdown.options.forEachIndexed { optIndex, option ->
+                            DropdownMenuItem(
+                                text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
+                                onClick = {
+                                    onDropdownChange(dropdown.id, optIndex)
+                                    expanded = false
+                                },
+                                leadingIcon = if (optIndex == selectedIndex) {
+                                    { Icon(Icons.Outlined.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                                } else null
+                            )
+                        }
                     }
                 }
             }

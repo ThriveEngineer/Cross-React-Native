@@ -44,13 +44,14 @@ export const ViewSettingsSheet: React.FC<ViewSettingsSheetProps> = ({
       const currentSortIndex = SORT_OPTIONS.findIndex(o => o.value === sortOption);
 
       showM3SettingsSheet({
-        title: 'View Settings',
+        title: '',
         toggles: [
           { id: 'completed', title: 'Completed tasks', icon: 'check', value: showCompletedInToday },
           { id: 'folders', title: 'Folder', icon: 'folder', value: showFolderNames },
         ],
         dropdowns: [
-          { id: 'sort', title: 'Sort', icon: 'settings', options: SORT_OPTIONS.map(o => o.label), selectedIndex: currentSortIndex >= 0 ? currentSortIndex : 0 },
+          { id: 'sort', title: 'Sort', icon: 'sort', options: SORT_OPTIONS.map(o => o.label), selectedIndex: currentSortIndex >= 0 ? currentSortIndex : 0 },
+          { id: 'group', title: 'Group', icon: 'grid', options: ['None'], selectedIndex: 0 },
         ],
       }).then((result) => {
         if (!result.cancelled) {
@@ -97,10 +98,8 @@ export const ViewSettingsSheet: React.FC<ViewSettingsSheetProps> = ({
 
   return (
     <NativeBottomSheet visible={visible} onClose={onClose}>
-      <Text style={styles.title}>View Settings</Text>
-
-      {/* Settings Container */}
-      <View style={styles.settingsContainer}>
+      {/* Toggles Card */}
+      <View style={styles.settingsCard}>
         {/* Completed Tasks Toggle */}
         <View style={styles.settingRow}>
           <View style={styles.settingLeft}>
@@ -126,13 +125,13 @@ export const ViewSettingsSheet: React.FC<ViewSettingsSheetProps> = ({
             onValueChange={handleToggleFolderNames}
           />
         </View>
+      </View>
 
-        <View style={styles.divider} />
-
-        {/* Sort Option - Native Dropdown */}
+      {/* Sort Card */}
+      <View style={styles.settingsCard}>
         <View style={styles.settingRow}>
           <View style={styles.settingLeft}>
-            <Ionicons name="swap-vertical" size={22} color={Colors.light.text} />
+            <Ionicons name="list" size={22} color={Colors.light.text} />
             <Text style={styles.settingLabel}>Sort</Text>
           </View>
           <NativeDropdown
@@ -144,13 +143,13 @@ export const ViewSettingsSheet: React.FC<ViewSettingsSheetProps> = ({
             }}
           />
         </View>
+      </View>
 
-        <View style={styles.divider} />
-
-        {/* Group Option (disabled/future feature) */}
+      {/* Group Card */}
+      <View style={styles.settingsCard}>
         <View style={[styles.settingRow, styles.disabledRow]}>
           <View style={styles.settingLeft}>
-            <Ionicons name="apps-outline" size={22} color={Colors.light.textSecondary} />
+            <Ionicons name="grid-outline" size={22} color={Colors.light.textSecondary} />
             <Text style={[styles.settingLabel, styles.disabledText]}>Group</Text>
           </View>
           <View style={styles.dropdownButton}>
@@ -164,39 +163,11 @@ export const ViewSettingsSheet: React.FC<ViewSettingsSheetProps> = ({
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: Colors.light.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    maxHeight: '70%',
-  },
-  dragHandle: {
-    width: 36,
-    height: 4,
-    backgroundColor: Colors.light.border,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.light.text,
-    marginBottom: Spacing.lg,
-    textAlign: 'center',
-  },
-  settingsContainer: {
-    backgroundColor: Colors.light.surface,
-    borderRadius: 18,
+  settingsCard: {
+    backgroundColor: '#F3F3F3',
+    borderRadius: 16,
     overflow: 'hidden',
+    marginBottom: 12,
   },
   settingRow: {
     flexDirection: 'row',

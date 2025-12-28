@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Task, Folder, SortOption, SyncState } from '../types/types';
 import { getCurrentTimestamp } from '../utils/dates';
 import { useMemo } from 'react';
+import { notionAutoSync } from '../services/notionService';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -374,12 +375,19 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     await AsyncStorage.setItem(STORAGE_KEYS.NOTION_API_KEY, apiKey);
     await AsyncStorage.setItem(STORAGE_KEYS.NOTION_DATABASE_ID, databaseId);
     set({ notionApiKey: apiKey, notionDatabaseId: databaseId });
+
+    // Initialize and start sync
+    notionAutoSync.initialize();
+    notionAutoSync.debouncedSync();
   },
 
   clearNotionCredentials: async () => {
     await AsyncStorage.removeItem(STORAGE_KEYS.NOTION_API_KEY);
     await AsyncStorage.removeItem(STORAGE_KEYS.NOTION_DATABASE_ID);
     set({ notionApiKey: null, notionDatabaseId: null });
+
+    // Stop sync polling
+    notionAutoSync.stopPolling();
   },
 
   updateSyncState: state => {
@@ -442,6 +450,13 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         notionApiKey: apiKey,
         notionDatabaseId: databaseId,
       });
+
+      // Initialize Notion auto-sync if credentials are available
+      if (apiKey && databaseId) {
+        notionAutoSync.initialize();
+        // Trigger initial sync
+        notionAutoSync.debouncedSync();
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -451,8 +466,13 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   saveTasks: async () => {
     try {
-      const { tasks } = get();
+      const { tasks, notionApiKey, notionDatabaseId } = get();
       await AsyncStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
+
+      // Trigger Notion sync if connected
+      if (notionApiKey && notionDatabaseId) {
+        notionAutoSync.debouncedSync();
+      }
     } catch (error) {
       console.error('Failed to save tasks:', error);
     }

@@ -19,22 +19,27 @@ import { useTaskStore } from '../../src/store/taskStore';
 import { notionAutoSync } from '../../src/services/notionService';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
 
-// Icon mapping for folders
+// Icon mapping for folders (includes both React Native and Kotlin naming conventions)
 const FOLDER_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
   'inbox': 'mail-outline',
   'heart': 'heart-outline',
+  'favorite': 'heart-outline',
   'check-square': 'checkbox-outline',
   'folder': 'folder-outline',
   'star': 'star-outline',
   'bookmark': 'bookmark-outline',
   'flag': 'flag-outline',
   'briefcase': 'briefcase-outline',
+  'work': 'briefcase-outline',
   'home': 'home-outline',
   'cart': 'cart-outline',
+  'shopping': 'cart-outline',
   'gift': 'gift-outline',
   'bulb': 'bulb-outline',
+  'lightbulb': 'bulb-outline',
   'fitness': 'fitness-outline',
   'musical-notes': 'musical-notes-outline',
+  'music': 'musical-notes-outline',
   'camera': 'camera-outline',
   'airplane': 'airplane-outline',
   'car': 'car-outline',

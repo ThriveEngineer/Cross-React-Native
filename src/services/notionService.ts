@@ -94,6 +94,7 @@ export class NotionService {
   static async updateTask(task: Task): Promise<boolean> {
     const { apiKey } = this.getCredentials();
     if (!apiKey || !task.notionPageId) {
+      console.log('updateTask skipped: missing apiKey or notionPageId');
       return false;
     }
 
@@ -127,6 +128,11 @@ export class NotionService {
         },
         body: JSON.stringify({ properties }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Notion update failed:', response.status, errorText);
+      }
 
       return response.ok;
     } catch (error) {
@@ -324,16 +330,20 @@ export class NotionService {
 
         if (comparison > 0) {
           // Local is newer - push to Notion
+          console.log(`Pushing to Notion: "${localTask.name}" (folder: ${localTask.folder})`);
           const success = await this.updateTask(localTask);
           if (success) {
             successCount++;
             updatedCount++;
+            console.log(`Successfully updated: "${localTask.name}"`);
           } else {
             failCount++;
             errors.push(`Failed to push: ${localTask.name}`);
+            console.error(`Failed to update: "${localTask.name}"`);
           }
         } else if (comparison < 0) {
           // Notion is newer - update local
+          console.log(`Pulling from Notion: "${notionTask.name}" (folder: ${notionTask.folder})`);
           store.updateTask(localTask.id, {
             name: notionTask.name,
             completed: notionTask.completed,
@@ -405,7 +415,7 @@ class NotionAutoSyncService {
   private syncInterval: ReturnType<typeof setInterval> | null = null;
   private debounceTimeout: ReturnType<typeof setTimeout> | null = null;
   private readonly SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
-  private readonly DEBOUNCE_DELAY = 3000; // 3 seconds
+  private readonly DEBOUNCE_DELAY = 1000; // 1 second
 
   private constructor() {}
 
@@ -450,13 +460,16 @@ class NotionAutoSyncService {
     const { notionApiKey, notionDatabaseId, syncState } = store;
 
     if (!notionApiKey || !notionDatabaseId || syncState.isSyncing) {
+      console.log('Sync skipped:', !notionApiKey ? 'no API key' : !notionDatabaseId ? 'no database ID' : 'already syncing');
       return;
     }
 
+    console.log('Starting Notion sync...');
     store.updateSyncState({ isSyncing: true });
 
     try {
       const result = await NotionService.performBidirectionalSync();
+      console.log(`Sync completed: ${result.success} success, ${result.failed} failed, ${result.created} created, ${result.updated} updated`);
       store.updateSyncState({
         isSyncing: false,
         lastSyncTime: getCurrentTimestamp(),
