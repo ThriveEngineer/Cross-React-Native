@@ -1,7 +1,6 @@
 package expo.modules.material3expressive
 
 import android.content.Context
-import android.view.ViewGroup
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -9,53 +8,49 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import expo.modules.kotlin.AppContext
-import expo.modules.kotlin.views.ExpoView
+import expo.modules.kotlin.views.ComposeProps
+import expo.modules.kotlin.views.ExpoComposeView
 
-class M3ExpressiveFAB(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
-    private var iconState = mutableStateOf("add")
-    private var labelState = mutableStateOf<String?>(null)
-    private var expandedState = mutableStateOf(true)
+data class FABProps(
+    val icon: MutableState<String> = mutableStateOf("add"),
+    val label: MutableState<String?> = mutableStateOf(null),
+    val expanded: MutableState<Boolean> = mutableStateOf(true)
+) : ComposeProps
 
-    private var onPressCallback: (() -> Unit)? = null
+class M3ExpressiveFAB(context: Context, appContext: AppContext) :
+    ExpoComposeView<FABProps>(context, appContext, withHostingView = true) {
 
-    private val composeView: ComposeView = ComposeView(context).apply {
-        layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-        setContent {
-            Material3ExpressiveTheme {
-                ExpressiveFABComposable(
-                    icon = iconState.value,
-                    label = labelState.value,
-                    expanded = expandedState.value,
-                    onClick = { onPressCallback?.invoke() }
-                )
-            }
+    override val props = FABProps()
+
+    @Composable
+    override fun Content(modifier: Modifier) {
+        val icon = props.icon.value
+        val label = props.label.value
+        val expanded = props.expanded.value
+
+        Material3ExpressiveTheme {
+            ExpressiveFABComposable(
+                icon = icon,
+                label = label,
+                expanded = expanded,
+                onClick = { },
+                modifier = modifier
+            )
         }
     }
 
-    init {
-        addView(composeView)
-    }
-
     fun setIcon(value: String) {
-        iconState.value = value
+        props.icon.value = value
     }
 
     fun setLabel(value: String?) {
-        labelState.value = value
+        props.label.value = value
     }
 
     fun setExpanded(value: Boolean) {
-        expandedState.value = value
-    }
-
-    fun setOnPressCallback(callback: () -> Unit) {
-        onPressCallback = callback
+        props.expanded.value = value
     }
 }
 
@@ -64,21 +59,22 @@ fun ExpressiveFABComposable(
     icon: String,
     label: String?,
     expanded: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val iconVector = getIconByName(icon)
 
     if (label != null && expanded) {
         ExtendedFloatingActionButton(
             onClick = onClick,
-            modifier = Modifier.padding(4.dp),
+            modifier = modifier.padding(4.dp),
             icon = { Icon(iconVector, contentDescription = label) },
             text = { Text(label) }
         )
     } else {
         FloatingActionButton(
             onClick = onClick,
-            modifier = Modifier.padding(4.dp)
+            modifier = modifier.padding(4.dp)
         ) {
             Icon(iconVector, contentDescription = label ?: "Action")
         }

@@ -5,14 +5,17 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, FontSizes } from '../src/constants/theme';
+import { M3DropdownMenu } from 'material3-expressive';
 
 type ThemeOption = 'system' | 'light' | 'dark';
+const THEME_OPTIONS = ['System', 'Light', 'Dark'] as const;
 
 interface ThemeRowProps {
   title: string;
@@ -41,11 +44,19 @@ const ThemeRow: React.FC<ThemeRowProps> = ({
 export default function ThemeScreen() {
   // For now, theme is always light. This is a placeholder for future implementation.
   const [selectedTheme, setSelectedTheme] = useState<ThemeOption>('light');
+  const selectedIndex = THEME_OPTIONS.findIndex(
+    (opt) => opt.toLowerCase() === selectedTheme
+  );
 
   const handleThemeSelect = useCallback((theme: ThemeOption) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedTheme(theme);
     // TODO: Implement actual theme switching when dark mode is added
+  }, []);
+
+  const handleDropdownChange = useCallback((index: number, value: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedTheme(value.toLowerCase() as ThemeOption);
   }, []);
 
   return (
@@ -66,33 +77,44 @@ export default function ThemeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Theme Options */}
-        <View style={styles.optionsContainer}>
-          <ThemeRow
-            title="System"
-            description="Follow your device's appearance settings"
-            isSelected={selectedTheme === 'system'}
-            onPress={() => handleThemeSelect('system')}
-          />
+        {/* Theme Options - M3 Dropdown on Android, list on iOS */}
+        {Platform.OS === 'android' ? (
+          <View style={styles.dropdownContainer}>
+            <M3DropdownMenu
+              options={[...THEME_OPTIONS]}
+              selectedIndex={selectedIndex >= 0 ? selectedIndex : 1}
+              label="Theme"
+              onSelectionChange={handleDropdownChange}
+            />
+          </View>
+        ) : (
+          <View style={styles.optionsContainer}>
+            <ThemeRow
+              title="System"
+              description="Follow your device's appearance settings"
+              isSelected={selectedTheme === 'system'}
+              onPress={() => handleThemeSelect('system')}
+            />
 
-          <View style={styles.divider} />
+            <View style={styles.divider} />
 
-          <ThemeRow
-            title="Light"
-            description="Always use light theme"
-            isSelected={selectedTheme === 'light'}
-            onPress={() => handleThemeSelect('light')}
-          />
+            <ThemeRow
+              title="Light"
+              description="Always use light theme"
+              isSelected={selectedTheme === 'light'}
+              onPress={() => handleThemeSelect('light')}
+            />
 
-          <View style={styles.divider} />
+            <View style={styles.divider} />
 
-          <ThemeRow
-            title="Dark"
-            description="Always use dark theme"
-            isSelected={selectedTheme === 'dark'}
-            onPress={() => handleThemeSelect('dark')}
-          />
-        </View>
+            <ThemeRow
+              title="Dark"
+              description="Always use dark theme"
+              isSelected={selectedTheme === 'dark'}
+              onPress={() => handleThemeSelect('dark')}
+            />
+          </View>
+        )}
 
         {/* Info Text */}
         <Text style={styles.infoText}>
@@ -131,6 +153,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.surface,
     borderRadius: 18,
     overflow: 'hidden',
+    width: 353,
+    alignSelf: 'center',
+  },
+  dropdownContainer: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: 18,
+    padding: Spacing.md,
     width: 353,
     alignSelf: 'center',
   },

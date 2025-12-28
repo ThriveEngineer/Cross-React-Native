@@ -1,46 +1,39 @@
 package expo.modules.material3expressive
 
 import android.content.Context
-import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import expo.modules.kotlin.AppContext
-import expo.modules.kotlin.views.ExpoView
+import expo.modules.kotlin.views.ComposeProps
+import expo.modules.kotlin.views.ExpoComposeView
 
-class M3ExpressiveCard(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
-    private var variantState = mutableStateOf("filled")
+data class CardProps(
+    val variant: MutableState<String> = mutableStateOf("filled")
+) : ComposeProps
 
-    private var onPressCallback: (() -> Unit)? = null
+class M3ExpressiveCard(context: Context, appContext: AppContext) :
+    ExpoComposeView<CardProps>(context, appContext, withHostingView = true) {
 
-    private val composeView: ComposeView = ComposeView(context).apply {
-        layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-        setContent {
-            Material3ExpressiveTheme {
-                ExpressiveCardComposable(
-                    variant = variantState.value,
-                    onClick = { onPressCallback?.invoke() }
-                )
-            }
+    override val props = CardProps()
+
+    @Composable
+    override fun Content(modifier: Modifier) {
+        val variant = props.variant.value
+
+        Material3ExpressiveTheme {
+            ExpressiveCardComposable(
+                variant = variant,
+                onClick = { },
+                modifier = modifier
+            )
         }
     }
 
-    init {
-        addView(composeView)
-    }
-
     fun setVariant(value: String) {
-        variantState.value = value
-    }
-
-    fun setOnPressCallback(callback: () -> Unit) {
-        onPressCallback = callback
+        props.variant.value = value
     }
 }
 

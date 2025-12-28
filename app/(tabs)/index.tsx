@@ -10,6 +10,7 @@ import { FloatingActionButton } from '../../src/components/FloatingActionButton'
 import { CustomAppBar } from '../../src/components/CustomAppBar';
 import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
 import { MoveToFolderSheet } from '../../src/components/MoveToFolderSheet';
+import { FocusTimer } from '../../src/components/FocusTimer';
 import { useTaskStore, useIncompleteTasks, useCompletedTasks } from '../../src/store/taskStore';
 import { notionAutoSync } from '../../src/services/notionService';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
@@ -19,6 +20,7 @@ export default function TodayScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewSettingsVisible, setViewSettingsVisible] = useState(false);
   const [moveToFolderVisible, setMoveToFolderVisible] = useState(false);
+  const [focusTimerVisible, setFocusTimerVisible] = useState(false);
   const {
     showCompletedInToday,
     isInitialized,
@@ -158,27 +160,45 @@ export default function TodayScreen() {
 
         {/* Selection Mode Action Buttons */}
         {selectionMode && (
-          <View style={styles.selectionActionsContainer}>
+          <View style={styles.selectionBarContainer}>
+            <View style={styles.selectionActionsContainer}>
+              <Pressable
+                style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+                onPress={() => hasSelection && setMoveToFolderVisible(true)}
+                disabled={!hasSelection}
+              >
+                <Ionicons
+                  name="folder-outline"
+                  size={24}
+                  color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
+                />
+              </Pressable>
+              <Pressable
+                style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+                onPress={() => hasSelection && handleDeleteSelected()}
+                disabled={!hasSelection}
+              >
+                <Ionicons
+                  name="trash-outline"
+                  size={24}
+                  color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
+                />
+              </Pressable>
+            </View>
             <Pressable
-              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
-              onPress={() => hasSelection && setMoveToFolderVisible(true)}
+              style={[styles.timerButton, !hasSelection && styles.selectionActionDisabled]}
+              onPress={() => {
+                if (hasSelection) {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setFocusTimerVisible(true);
+                }
+              }}
               disabled={!hasSelection}
             >
               <Ionicons
-                name="folder-outline"
+                name="time-outline"
                 size={24}
-                color={hasSelection ? Colors.light.primary : Colors.light.textSecondary}
-              />
-            </Pressable>
-            <Pressable
-              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
-              onPress={() => hasSelection && handleDeleteSelected()}
-              disabled={!hasSelection}
-            >
-              <Ionicons
-                name="trash-outline"
-                size={24}
-                color={hasSelection ? Colors.light.error : Colors.light.textSecondary}
+                color="#FFFFFF"
               />
             </Pressable>
           </View>
@@ -192,6 +212,10 @@ export default function TodayScreen() {
           visible={moveToFolderVisible}
           onClose={() => setMoveToFolderVisible(false)}
           taskIds={selectedTaskIds}
+        />
+        <FocusTimer
+          visible={focusTimerVisible}
+          onClose={() => setFocusTimerVisible(false)}
         />
       </SafeAreaView>
     );
@@ -236,27 +260,45 @@ export default function TodayScreen() {
 
       {/* Selection Mode Action Buttons */}
       {selectionMode && (
-        <View style={styles.selectionActionsContainer}>
+        <View style={styles.selectionBarContainer}>
+          <View style={styles.selectionActionsContainer}>
+            <Pressable
+              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+              onPress={() => hasSelection && setMoveToFolderVisible(true)}
+              disabled={!hasSelection}
+            >
+              <Ionicons
+                name="folder-outline"
+                size={24}
+                color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
+              />
+            </Pressable>
+            <Pressable
+              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+              onPress={() => hasSelection && handleDeleteSelected()}
+              disabled={!hasSelection}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={24}
+                color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
+              />
+            </Pressable>
+          </View>
           <Pressable
-            style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
-            onPress={() => hasSelection && setMoveToFolderVisible(true)}
+            style={[styles.timerButton, !hasSelection && styles.selectionActionDisabled]}
+            onPress={() => {
+              if (hasSelection) {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setFocusTimerVisible(true);
+              }
+            }}
             disabled={!hasSelection}
           >
             <Ionicons
-              name="folder-outline"
+              name="time-outline"
               size={24}
-              color={hasSelection ? Colors.light.primary : Colors.light.textSecondary}
-            />
-          </Pressable>
-          <Pressable
-            style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
-            onPress={() => hasSelection && handleDeleteSelected()}
-            disabled={!hasSelection}
-          >
-            <Ionicons
-              name="trash-outline"
-              size={24}
-              color={hasSelection ? Colors.light.error : Colors.light.textSecondary}
+              color="#FFFFFF"
             />
           </Pressable>
         </View>
@@ -270,6 +312,10 @@ export default function TodayScreen() {
         visible={moveToFolderVisible}
         onClose={() => setMoveToFolderVisible(false)}
         taskIds={selectedTaskIds}
+      />
+      <FocusTimer
+        visible={focusTimerVisible}
+        onClose={() => setFocusTimerVisible(false)}
       />
     </SafeAreaView>
   );
@@ -380,26 +426,35 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: FontSizes.md,
   },
-  selectionActionsContainer: {
+  selectionBarContainer: {
     position: 'absolute',
-    bottom: 76,
-    right: 88,
+    bottom: 16,
+    left: 20,
+    right: 20,
     flexDirection: 'row',
-    backgroundColor: Colors.light.surface,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectionActionsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F3F3',
     borderRadius: 28,
     paddingHorizontal: 8,
     paddingVertical: 8,
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
+    gap: 4,
   },
   selectionActionButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  timerButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: Colors.light.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },

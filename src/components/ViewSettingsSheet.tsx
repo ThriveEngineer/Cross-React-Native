@@ -1,16 +1,17 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Pressable,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTaskStore } from '../store/taskStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { SortOption } from '../types/types';
-import { NativeSwitch, NativeBottomSheet } from './native';
+import { NativeSwitch, NativeBottomSheet, NativeDropdown } from './native';
+import { showM3SettingsSheet } from 'material3-expressive';
 
 interface ViewSettingsSheetProps {
   visible: boolean;
@@ -37,7 +38,44 @@ export const ViewSettingsSheet: React.FC<ViewSettingsSheetProps> = ({
     setSortOption,
   } = useTaskStore();
 
-  const [sortMenuVisible, setSortMenuVisible] = React.useState(false);
+  // Use native Android sheet
+  useEffect(() => {
+    if (visible && Platform.OS === 'android') {
+      const currentSortIndex = SORT_OPTIONS.findIndex(o => o.value === sortOption);
+
+      showM3SettingsSheet({
+        title: 'View Settings',
+        toggles: [
+          { id: 'completed', title: 'Completed tasks', icon: 'check', value: showCompletedInToday },
+          { id: 'folders', title: 'Folder', icon: 'folder', value: showFolderNames },
+        ],
+        dropdowns: [
+          { id: 'sort', title: 'Sort', icon: 'settings', options: SORT_OPTIONS.map(o => o.label), selectedIndex: currentSortIndex >= 0 ? currentSortIndex : 0 },
+        ],
+      }).then((result) => {
+        if (!result.cancelled) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          if (result.toggles) {
+            if (result.toggles.completed !== undefined) {
+              setShowCompletedInToday(result.toggles.completed);
+            }
+            if (result.toggles.folders !== undefined) {
+              setShowFolderNames(result.toggles.folders);
+            }
+          }
+          if (result.dropdowns?.sort !== undefined) {
+            setSortOption(SORT_OPTIONS[result.dropdowns.sort].value);
+          }
+        }
+        onClose();
+      });
+    }
+  }, [visible]);
+
+  // iOS fallback
+  if (Platform.OS === 'android') {
+    return null;
+  }
 
   const handleToggleCompleted = useCallback(
     (value: boolean) => {
@@ -55,16 +93,7 @@ export const ViewSettingsSheet: React.FC<ViewSettingsSheetProps> = ({
     [setShowFolderNames]
   );
 
-  const handleSortChange = useCallback(
-    (option: SortOption) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      setSortOption(option);
-      setSortMenuVisible(false);
-    },
-    [setSortOption]
-  );
-
-  const currentSortLabel = SORT_OPTIONS.find(o => o.value === sortOption)?.label || 'Manual';
+  const currentSortIndex = SORT_OPTIONS.findIndex(o => o.value === sortOption);
 
   return (
     <NativeBottomSheet visible={visible} onClose={onClose}>
@@ -100,66 +129,21 @@ export const ViewSettingsSheet: React.FC<ViewSettingsSheetProps> = ({
 
         <View style={styles.divider} />
 
-        {/* Sort Option */}
-        <Pressable
-          style={styles.settingRow}
-          onPress={() => setSortMenuVisible(!sortMenuVisible)}
-        >
+        {/* Sort Option - Native Dropdown */}
+        <View style={styles.settingRow}>
           <View style={styles.settingLeft}>
             <Ionicons name="swap-vertical" size={22} color={Colors.light.text} />
             <Text style={styles.settingLabel}>Sort</Text>
           </View>
-          <View style={styles.dropdownButton}>
-            <Text style={styles.dropdownText}>{currentSortLabel}</Text>
-            <Ionicons
-              name={sortMenuVisible ? 'chevron-up' : 'chevron-down'}
-              size={16}
-              color={Colors.light.textSecondary}
-            />
-          </View>
-        </Pressable>
-
-        {/* Sort Options Dropdown */}
-        {sortMenuVisible && (
-          <View style={styles.sortOptions}>
-            {SORT_OPTIONS.map(option => (
-              <Pressable
-                key={option.value}
-                style={[
-                  styles.sortOption,
-                  sortOption === option.value && styles.sortOptionSelected,
-                ]}
-                onPress={() => handleSortChange(option.value)}
-              >
-                <Ionicons
-                  name={option.icon}
-                  size={18}
-                  color={
-                    sortOption === option.value
-                      ? Colors.light.primary
-                      : Colors.light.textSecondary
-                  }
-                />
-                <Text
-                  style={[
-                    styles.sortOptionText,
-                    sortOption === option.value && styles.sortOptionTextSelected,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-                {sortOption === option.value && (
-                  <Ionicons
-                    name="checkmark"
-                    size={18}
-                    color={Colors.light.primary}
-                    style={styles.checkmark}
-                  />
-                )}
-              </Pressable>
-            ))}
-          </View>
-        )}
+          <NativeDropdown
+            options={SORT_OPTIONS.map(o => o.label)}
+            selectedIndex={currentSortIndex >= 0 ? currentSortIndex : 0}
+            onSelectionChange={(index) => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setSortOption(SORT_OPTIONS[index].value);
+            }}
+          />
+        </View>
 
         <View style={styles.divider} />
 
@@ -243,34 +227,6 @@ const styles = StyleSheet.create({
   dropdownText: {
     fontSize: FontSizes.md,
     color: Colors.light.textSecondary,
-  },
-  sortOptions: {
-    backgroundColor: Colors.light.cardBackground,
-    marginHorizontal: Spacing.md,
-    marginBottom: Spacing.sm,
-    borderRadius: BorderRadius.md,
-  },
-  sortOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  sortOptionSelected: {
-    backgroundColor: 'rgba(29, 29, 29, 0.05)',
-  },
-  sortOptionText: {
-    fontSize: FontSizes.sm,
-    color: Colors.light.text,
-    flex: 1,
-  },
-  sortOptionTextSelected: {
-    fontWeight: '600',
-    color: Colors.light.primary,
-  },
-  checkmark: {
-    marginLeft: 'auto',
   },
   disabledRow: {
     opacity: 0.5,

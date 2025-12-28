@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   selectionActionsContainer: {
     position: 'absolute',
-    bottom: 76,
+    bottom: 16,
     right: 88,
     flexDirection: 'row',
     backgroundColor: Colors.light.surface,

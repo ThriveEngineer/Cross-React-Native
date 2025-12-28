@@ -1,14 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import {
   View,
-  Text,
   Pressable,
   StyleSheet,
-  Modal,
   TextInput,
-  ScrollView,
   Platform,
-  KeyboardAvoidingView,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -19,9 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTaskStore } from '../store/taskStore';
-import { Colors, Spacing, BorderRadius, FontSizes } from '../constants/theme';
-import { FocusTimer } from './FocusTimer';
+import { Colors, Spacing, FontSizes } from '../constants/theme';
 import { format } from 'date-fns';
+import { showM3DatePicker, showM3TaskCreationSheet } from 'material3-expressive';
+import { NativeDropdown, NativeBottomSheet } from './native';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -33,26 +30,37 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   defaultFolder = 'Inbox',
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [taskName, setTaskName] = useState('');
   const [selectedFolder, setSelectedFolder] = useState(defaultFolder);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showFolderPicker, setShowFolderPicker] = useState(false);
 
   const { folders, addTask, selectionMode } = useTaskStore();
   const scale = useSharedValue(1);
 
-  // In normal mode: open task creation
-  // In selection mode: open focus timer
+  const availableFolders = folders.filter(f => f.name !== 'Completed');
+  const defaultFolderIndex = Math.max(0, availableFolders.findIndex(f => f.name === defaultFolder));
+
+  // Open task creation (only in normal mode, FAB is hidden in selection mode)
   const handlePress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (selectionMode) {
-      setIsTimerVisible(true);
+    // On Android, use native sheet
+    if (Platform.OS === 'android') {
+      showM3TaskCreationSheet({
+        folders: availableFolders.map(f => f.name),
+        selectedFolderIndex: defaultFolderIndex,
+      }).then((result) => {
+        if (!result.cancelled && result.taskName) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          const folderName = availableFolders[result.folderIndex ?? 0]?.name ?? defaultFolder;
+          const dueDate = result.dueDateMillis ? new Date(result.dueDateMillis).toISOString() : undefined;
+          addTask(result.taskName, folderName, dueDate);
+        }
+      });
     } else {
       setIsModalVisible(true);
     }
-  }, [selectionMode]);
+  }, [availableFolders, defaultFolderIndex, defaultFolder, addTask]);
 
   const handleClose = useCallback(() => {
     setIsModalVisible(false);
@@ -60,7 +68,6 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
     setSelectedFolder(defaultFolder);
     setSelectedDate(null);
     setShowDatePicker(false);
-    setShowFolderPicker(false);
   }, [defaultFolder]);
 
   const handleCreate = useCallback(() => {
@@ -86,9 +93,14 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
     }
   };
 
+  // Hide FAB in selection mode (timer is shown in selection bar instead)
+  if (selectionMode) {
+    return null;
+  }
+
   return (
     <>
-      {/* Main FAB - changes icon based on selection mode */}
+      {/* Main FAB - only shown in normal mode */}
       <AnimatedPressable
         onPress={handlePress}
         onPressIn={() => {
@@ -100,132 +112,100 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
         style={[styles.fab, animatedStyle]}
       >
         <Ionicons
-          name={selectionMode ? "time-outline" : "add"}
+          name="add"
           size={28}
           color="#FFFFFF"
         />
       </AnimatedPressable>
 
-      {/* Focus Timer Modal */}
-      <FocusTimer
-        visible={isTimerVisible}
-        onClose={() => setIsTimerVisible(false)}
-      />
+      {/* Task Creation Bottom Sheet - iOS only */}
+      {Platform.OS !== 'android' && (
+        <NativeBottomSheet visible={isModalVisible} onClose={handleClose}>
+          <View style={styles.createForm}>
+            <TextInput
+              style={styles.input}
+              placeholder="Task name"
+              placeholderTextColor={Colors.light.textSecondary}
+              value={taskName}
+              onChangeText={setTaskName}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleCreate}
+            />
 
-      {/* Task Creation Modal */}
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={handleClose}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
-        >
-          <Pressable style={styles.modalBackground} onPress={handleClose} />
-          <View style={styles.modalContent}>
-            <View style={styles.dragHandle} />
+            {/* Folder selector - Native Dropdown */}
+            <NativeDropdown
+              options={availableFolders.map(f => f.name)}
+              selectedIndex={Math.max(0, availableFolders.findIndex(f => f.name === selectedFolder))}
+              onSelectionChange={(index, value) => {
+                setSelectedFolder(value);
+              }}
+            />
 
-            <View style={styles.createForm}>
-              <TextInput
-                style={styles.input}
-                placeholder="Task name"
-                placeholderTextColor={Colors.light.textSecondary}
-                value={taskName}
-                onChangeText={setTaskName}
-                autoFocus
-                returnKeyType="done"
-                onSubmitEditing={handleCreate}
-              />
+            {/* Date selector chip */}
+            <Pressable
+              style={styles.selectorChip}
+              onPress={async () => {
+                if (Platform.OS === 'android') {
+                  try {
+                    const result = await showM3DatePicker({
+                      selectedDate: selectedDate?.getTime(),
+                      title: 'Select due date',
+                    });
+                    if (!result.cancelled && result.dateMillis) {
+                      setSelectedDate(new Date(result.dateMillis));
+                    }
+                  } catch (error) {
+                    // M3 date picker not available, fall back to standard picker
+                    setShowDatePicker(true);
+                  }
+                } else {
+                  setShowDatePicker(!showDatePicker);
+                }
+              }}
+            >
+              <Ionicons name="calendar-outline" size={18} color={Colors.light.textSecondary} />
+              <Text style={styles.selectorChipText}>
+                {selectedDate ? format(selectedDate, 'MMM d') : 'No date'}
+              </Text>
+              {selectedDate && (
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    setSelectedDate(null);
+                  }}
+                  hitSlop={10}
+                >
+                  <Ionicons name="close-circle" size={16} color={Colors.light.textSecondary} />
+                </Pressable>
+              )}
+            </Pressable>
 
-              {/* Folder selector chip */}
-              <Pressable
-                style={styles.selectorChip}
-                onPress={() => setShowFolderPicker(!showFolderPicker)}
-              >
-                <Ionicons name="folder-outline" size={18} color={Colors.light.textSecondary} />
-                <Text style={styles.selectorChipText}>{selectedFolder}</Text>
-              </Pressable>
-
-              {/* Date selector chip */}
-              <Pressable
-                style={styles.selectorChip}
-                onPress={() => setShowDatePicker(!showDatePicker)}
-              >
-                <Ionicons name="calendar-outline" size={18} color={Colors.light.textSecondary} />
-                <Text style={styles.selectorChipText}>
-                  {selectedDate ? format(selectedDate, 'MMM d') : 'No date'}
-                </Text>
-                {selectedDate && (
-                  <Pressable
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      setSelectedDate(null);
-                    }}
-                    hitSlop={10}
-                  >
-                    <Ionicons name="close-circle" size={16} color={Colors.light.textSecondary} />
-                  </Pressable>
-                )}
-              </Pressable>
-
-              {/* Create button */}
-              <Pressable
-                style={[
-                  styles.tickButton,
-                  !taskName.trim() && styles.tickButtonDisabled,
-                ]}
-                onPress={handleCreate}
-                disabled={!taskName.trim()}
-              >
-                <Ionicons name="checkmark-circle" size={36} color="#FFFFFF" />
-              </Pressable>
-            </View>
-
-            {/* Folder picker dropdown */}
-            {showFolderPicker && (
-              <ScrollView style={styles.pickerList} nestedScrollEnabled>
-                {folders
-                  .filter(f => f.name !== 'Completed')
-                  .map(folder => (
-                    <Pressable
-                      key={folder.id}
-                      style={[
-                        styles.pickerItem,
-                        selectedFolder === folder.name && styles.pickerItemSelected,
-                      ]}
-                      onPress={() => {
-                        setSelectedFolder(folder.name);
-                        setShowFolderPicker(false);
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerItemText,
-                          selectedFolder === folder.name && styles.pickerItemTextSelected,
-                        ]}
-                      >
-                        {folder.name}
-                      </Text>
-                    </Pressable>
-                  ))}
-              </ScrollView>
-            )}
-
-            {/* Date picker */}
-            {showDatePicker && (
-              <DateTimePicker
-                value={selectedDate || new Date()}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleDateChange}
-                minimumDate={new Date()}
-              />
-            )}
+            {/* Create button */}
+            <Pressable
+              style={[
+                styles.tickButton,
+                !taskName.trim() && styles.tickButtonDisabled,
+              ]}
+              onPress={handleCreate}
+              disabled={!taskName.trim()}
+            >
+              <Ionicons name="checkmark-circle" size={36} color="#FFFFFF" />
+            </Pressable>
           </View>
-        </KeyboardAvoidingView>
-      </Modal>
+
+          {/* Date picker fallback (iOS always, Android when M3 not available) */}
+          {showDatePicker && (
+            <DateTimePicker
+              value={selectedDate || new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+            />
+          )}
+        </NativeBottomSheet>
+      )}
     </>
   );
 };
@@ -233,11 +213,11 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: 76,
+    bottom: 16,
     right: 20,
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 16,
     backgroundColor: Colors.light.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -246,30 +226,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 8,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modalBackground: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  modalContent: {
-    backgroundColor: Colors.light.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  dragHandle: {
-    width: 36,
-    height: 4,
-    backgroundColor: Colors.light.border,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.lg,
   },
   createForm: {
     flexDirection: 'row',
@@ -306,26 +262,5 @@ const styles = StyleSheet.create({
   },
   tickButtonDisabled: {
     backgroundColor: Colors.light.textSecondary,
-  },
-  pickerList: {
-    maxHeight: 150,
-    backgroundColor: Colors.light.cardBackground,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.sm,
-  },
-  pickerItem: {
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
-  },
-  pickerItemSelected: {
-    backgroundColor: 'rgba(29, 29, 29, 0.1)',
-  },
-  pickerItemText: {
-    fontSize: FontSizes.md,
-    color: Colors.light.text,
-  },
-  pickerItemTextSelected: {
-    fontWeight: '600',
   },
 });

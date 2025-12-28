@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +20,7 @@ import { CustomAppBar } from '../../src/components/CustomAppBar';
 import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
 import { Folder } from '../../src/types/types';
+import { showM3FolderCreationSheet } from 'material3-expressive';
 
 // Icon mapping for folders
 const FOLDER_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -220,9 +222,17 @@ export default function FoldersScreen() {
         // Add folder button
         <Pressable
           style={styles.fab}
-          onPress={() => {
+          onPress={async () => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            setIsCreateModalVisible(true);
+            if (Platform.OS === 'android') {
+              const result = await showM3FolderCreationSheet();
+              if (!result.cancelled && result.folderName) {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                addFolder(result.folderName, result.icon || 'folder');
+              }
+            } else {
+              setIsCreateModalVisible(true);
+            }
           }}
         >
           <Ionicons name="folder-open-outline" size={24} color="#FFFFFF" />
@@ -377,7 +387,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 76,
+    bottom: 16,
     right: 20,
     width: 56,
     height: 56,
@@ -398,7 +408,7 @@ const styles = StyleSheet.create({
   },
   deleteFab: {
     position: 'absolute',
-    bottom: 76,
+    bottom: 16,
     right: 20,
     width: 56,
     height: 56,

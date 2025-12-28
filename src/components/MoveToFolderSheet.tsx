@@ -1,18 +1,20 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Pressable,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTaskStore } from '../store/taskStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { NativeBottomSheet } from './native';
+import { showM3SelectionSheet } from 'material3-expressive';
 
-// Icon mapping for folders
+// Icon mapping for folders (Ionicons to Material)
 const FOLDER_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
   'inbox': 'mail-outline',
   'heart': 'heart-outline',
@@ -38,6 +40,32 @@ const FOLDER_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
   'library': 'library-outline',
 };
 
+// Map folder icons to Material icons for Android
+const MATERIAL_ICON_MAP: Record<string, string> = {
+  'inbox': 'inbox',
+  'heart': 'favorite',
+  'check-square': 'check',
+  'folder': 'folder',
+  'star': 'star',
+  'bookmark': 'bookmark',
+  'flag': 'flag',
+  'briefcase': 'work',
+  'home': 'home',
+  'cart': 'shopping',
+  'gift': 'gift',
+  'bulb': 'lightbulb',
+  'fitness': 'fitness',
+  'musical-notes': 'music',
+  'camera': 'camera',
+  'airplane': 'flight',
+  'car': 'car',
+  'restaurant': 'restaurant',
+  'cafe': 'coffee',
+  'medical': 'health',
+  'school': 'school',
+  'library': 'library',
+};
+
 interface MoveToFolderSheetProps {
   visible: boolean;
   onClose: () => void;
@@ -55,6 +83,34 @@ export const MoveToFolderSheet: React.FC<MoveToFolderSheetProps> = ({
 
   // Filter out Completed folder for move options
   const availableFolders = folders.filter(f => f.name !== 'Completed');
+
+  // Use native Android sheet
+  useEffect(() => {
+    if (visible && Platform.OS === 'android') {
+      showM3SelectionSheet({
+        title: 'Move to folder',
+        subtitle: `${taskIds.length} task${taskIds.length !== 1 ? 's' : ''} selected`,
+        items: availableFolders.map(folder => ({
+          id: folder.id,
+          title: folder.name,
+          icon: MATERIAL_ICON_MAP[folder.icon] || 'folder',
+        })),
+      }).then((result) => {
+        if (!result.cancelled && result.selectedTitle) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          moveTasksToFolder(taskIds, result.selectedTitle);
+          clearSelection();
+          onMoveComplete?.();
+        }
+        onClose();
+      });
+    }
+  }, [visible]);
+
+  // iOS fallback
+  if (Platform.OS === 'android') {
+    return null;
+  }
 
   const handleFolderSelect = useCallback((folderName: string) => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

@@ -1,10 +1,7 @@
 import React from 'react';
-import { Platform, Switch as RNSwitch } from 'react-native';
+import { Platform, Switch as RNSwitch, View, StyleSheet } from 'react-native';
 import { Colors } from '../../constants/theme';
-
-// Note: @expo/ui requires a development build (npx expo prebuild)
-// For Expo Go compatibility, we use React Native Switch directly
-// To enable native SwiftUI/Jetpack components, run a development build
+import { M3Switch, isM3SwitchAvailable } from 'material3-expressive';
 
 interface NativeSwitchProps {
   value: boolean;
@@ -17,14 +14,28 @@ export const NativeSwitch: React.FC<NativeSwitchProps> = ({
   onValueChange,
   disabled = false,
 }) => {
-  // React Native Switch with native iOS/Android styling
+  // Use M3 Switch on Android if available
+  if (isM3SwitchAvailable) {
+    return (
+      <View style={styles.m3SwitchContainer}>
+        <M3Switch
+          value={value}
+          onValueChange={onValueChange}
+          enabled={!disabled}
+          style={styles.m3Switch}
+        />
+      </View>
+    );
+  }
+
+  // Fallback: React Native switch (iOS or Android fallback)
   return (
     <RNSwitch
       value={value}
       onValueChange={onValueChange}
       disabled={disabled}
       trackColor={{
-        false: Platform.OS === 'ios' ? '#E9E9EA' : '#767577',
+        false: '#E9E9EA',
         true: Colors.light.primary,
       }}
       thumbColor={Platform.OS === 'android' ? (value ? Colors.light.primary : '#f4f3f4') : undefined}
@@ -32,3 +43,14 @@ export const NativeSwitch: React.FC<NativeSwitchProps> = ({
     />
   );
 };
+
+const styles = StyleSheet.create({
+  m3SwitchContainer: {
+    width: 52,
+    height: 32,
+  },
+  m3Switch: {
+    width: 52,
+    height: 32,
+  },
+});

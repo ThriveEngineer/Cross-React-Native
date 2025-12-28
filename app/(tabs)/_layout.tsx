@@ -1,7 +1,9 @@
-import { Platform, DynamicColorIOS } from 'react-native';
-import { Tabs } from 'expo-router';
+import React, { useState, useCallback } from 'react';
+import { Platform, DynamicColorIOS, View, StyleSheet } from 'react-native';
+import { Tabs, usePathname, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/theme';
+import { M3NavigationBar } from 'material3-expressive';
 
 // Try to use native tabs with Liquid Glass on iOS
 let NativeTabs: any = null;
@@ -16,6 +18,13 @@ try {
 } catch (e) {
   // Native tabs not available
 }
+
+// Tab configuration
+const TABS = [
+  { name: 'index', label: 'Today', icon: 'today', selectedIcon: 'today' },
+  { name: 'upcoming', label: 'Upcoming', icon: 'calendar', selectedIcon: 'calendar' },
+  { name: 'folders', label: 'Folders', icon: 'folder', selectedIcon: 'folder' },
+];
 
 // Native tabs layout for iOS with Liquid Glass
 function NativeTabLayout() {
@@ -48,10 +57,47 @@ function NativeTabLayout() {
   );
 }
 
-// Fallback JS tabs layout
+// Custom M3 Tab Bar for Android
+function M3TabBar({ state, navigation }: any) {
+  const handleItemSelected = useCallback((index: number) => {
+    const route = state.routes[index];
+    const event = navigation.emit({
+      type: 'tabPress',
+      target: route.key,
+      canPreventDefault: true,
+    });
+
+    if (!event.defaultPrevented) {
+      navigation.navigate(route.name);
+    }
+  }, [state.routes, navigation]);
+
+  return (
+    <View style={m3Styles.tabBarContainer}>
+      <M3NavigationBar
+        items={TABS.map(t => t.label)}
+        selectedIndex={state.index}
+        icons={TABS.map(t => t.icon)}
+        selectedIcons={TABS.map(t => t.selectedIcon)}
+        onItemSelected={handleItemSelected}
+        style={m3Styles.navigationBar}
+      />
+    </View>
+  );
+}
+
+// Set to true after running: npx expo run:android
+// This requires a native rebuild to work
+const USE_M3_NAVIGATION_BAR = true;
+
+// Fallback JS tabs layout (iOS fallback and non-M3)
 function JSTabLayout() {
+  const isAndroid = Platform.OS === 'android';
+  const useM3TabBar = isAndroid && USE_M3_NAVIGATION_BAR;
+
   return (
     <Tabs
+      tabBar={useM3TabBar ? (props) => <M3TabBar {...props} /> : undefined}
       screenOptions={{
         tabBarActiveTintColor: Colors.light.primary,
         tabBarInactiveTintColor: Colors.light.textSecondary,
@@ -109,6 +155,15 @@ function JSTabLayout() {
     </Tabs>
   );
 }
+
+const m3Styles = StyleSheet.create({
+  tabBarContainer: {
+    backgroundColor: Colors.light.surface,
+  },
+  navigationBar: {
+    height: 80,
+  },
+});
 
 export default function TabLayout() {
   // Use native tabs on iOS if available for Liquid Glass effect
