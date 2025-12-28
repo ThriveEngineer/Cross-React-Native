@@ -59,7 +59,10 @@ class M3ExpressiveDatePicker(context: Context, appContext: AppContext) :
                                     onDateSelected(DateSelectedEvent(millis))
                                 }
                                 props.visible.value = false
-                            }
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
                         ) {
                             Text("OK")
                         }
@@ -69,11 +72,31 @@ class M3ExpressiveDatePicker(context: Context, appContext: AppContext) :
                             onClick = {
                                 props.visible.value = false
                                 onDismiss(DatePickerDismissEvent())
-                            }
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
                         ) {
                             Text("Cancel")
                         }
-                    }
+                    },
+                    colors = DatePickerDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        headlineContentColor = MaterialTheme.colorScheme.onSurface,
+                        weekdayContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        subheadContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        navigationContentColor = MaterialTheme.colorScheme.onSurface,
+                        yearContentColor = MaterialTheme.colorScheme.onSurface,
+                        currentYearContentColor = MaterialTheme.colorScheme.primary,
+                        selectedYearContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedYearContentColor = MaterialTheme.colorScheme.onPrimary,
+                        dayContentColor = MaterialTheme.colorScheme.onSurface,
+                        selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
+                        todayContentColor = MaterialTheme.colorScheme.primary,
+                        todayDateBorderColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     DatePicker(
                         state = datePickerState,
@@ -82,7 +105,24 @@ class M3ExpressiveDatePicker(context: Context, appContext: AppContext) :
                                 text = title,
                                 modifier = Modifier.padding(start = 24.dp, top = 16.dp)
                             )
-                        }
+                        },
+                        colors = DatePickerDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            titleContentColor = MaterialTheme.colorScheme.onSurface,
+                            headlineContentColor = MaterialTheme.colorScheme.onSurface,
+                            weekdayContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            subheadContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            navigationContentColor = MaterialTheme.colorScheme.onSurface,
+                            yearContentColor = MaterialTheme.colorScheme.onSurface,
+                            currentYearContentColor = MaterialTheme.colorScheme.primary,
+                            selectedYearContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedYearContentColor = MaterialTheme.colorScheme.onPrimary,
+                            dayContentColor = MaterialTheme.colorScheme.onSurface,
+                            selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
+                            todayContentColor = MaterialTheme.colorScheme.primary,
+                            todayDateBorderColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                 }
             }

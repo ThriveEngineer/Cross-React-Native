@@ -161,30 +161,28 @@ export default function TodayScreen() {
         {/* Selection Mode Action Buttons */}
         {selectionMode && (
           <View style={styles.selectionBarContainer}>
-            <View style={styles.selectionActionsContainer}>
-              <Pressable
-                style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
-                onPress={() => hasSelection && setMoveToFolderVisible(true)}
-                disabled={!hasSelection}
-              >
-                <Ionicons
-                  name="folder-outline"
-                  size={24}
-                  color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
-                />
-              </Pressable>
-              <Pressable
-                style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
-                onPress={() => hasSelection && handleDeleteSelected()}
-                disabled={!hasSelection}
-              >
-                <Ionicons
-                  name="trash-outline"
-                  size={24}
-                  color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
-                />
-              </Pressable>
-            </View>
+            <Pressable
+              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+              onPress={() => hasSelection && setMoveToFolderVisible(true)}
+              disabled={!hasSelection}
+            >
+              <Ionicons
+                name="folder-outline"
+                size={24}
+                color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
+              />
+            </Pressable>
+            <Pressable
+              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+              onPress={() => hasSelection && handleDeleteSelected()}
+              disabled={!hasSelection}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={24}
+                color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
+              />
+            </Pressable>
             <Pressable
               style={[styles.timerButton, !hasSelection && styles.selectionActionDisabled]}
               onPress={() => {
@@ -261,30 +259,28 @@ export default function TodayScreen() {
       {/* Selection Mode Action Buttons */}
       {selectionMode && (
         <View style={styles.selectionBarContainer}>
-          <View style={styles.selectionActionsContainer}>
-            <Pressable
-              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
-              onPress={() => hasSelection && setMoveToFolderVisible(true)}
-              disabled={!hasSelection}
-            >
-              <Ionicons
-                name="folder-outline"
-                size={24}
-                color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
-              />
-            </Pressable>
-            <Pressable
-              style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
-              onPress={() => hasSelection && handleDeleteSelected()}
-              disabled={!hasSelection}
-            >
-              <Ionicons
-                name="trash-outline"
-                size={24}
-                color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
-              />
-            </Pressable>
-          </View>
+          <Pressable
+            style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+            onPress={() => hasSelection && setMoveToFolderVisible(true)}
+            disabled={!hasSelection}
+          >
+            <Ionicons
+              name="folder-outline"
+              size={24}
+              color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
+            />
+          </Pressable>
+          <Pressable
+            style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
+            onPress={() => hasSelection && handleDeleteSelected()}
+            disabled={!hasSelection}
+          >
+            <Ionicons
+              name="trash-outline"
+              size={24}
+              color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
+            />
+          </Pressable>
           <Pressable
             style={[styles.timerButton, !hasSelection && styles.selectionActionDisabled]}
             onPress={() => {
@@ -429,17 +425,12 @@ const styles = StyleSheet.create({
   selectionBarContainer: {
     position: 'absolute',
     bottom: 16,
-    left: 20,
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  selectionActionsContainer: {
-    flexDirection: 'row',
     backgroundColor: '#F3F3F3',
     borderRadius: 28,
-    paddingHorizontal: 8,
+    paddingLeft: 8,
     paddingVertical: 8,
     gap: 4,
   },

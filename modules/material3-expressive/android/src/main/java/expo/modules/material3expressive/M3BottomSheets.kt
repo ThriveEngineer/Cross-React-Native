@@ -152,7 +152,10 @@ fun showSelectionSheet(
                             promise.resolve(mapOf("cancelled" to true))
                             (parent as? ViewGroup)?.removeView(this@apply)
                         },
-                        dragHandle = { BottomSheetDefaults.DragHandle() }
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
+                        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     ) {
                         SelectionSheetContent(
                             title = title,
@@ -253,7 +256,11 @@ private fun SelectionSheetContent(
         // Cancel button
         FilledTonalButton(
             onClick = onCancel,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         ) {
             Text("Cancel")
         }
@@ -296,7 +303,10 @@ fun showSettingsSheet(
                             ))
                             (parent as? ViewGroup)?.removeView(this@apply)
                         },
-                        dragHandle = { BottomSheetDefaults.DragHandle() }
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
+                        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     ) {
                         SettingsSheetContent(
                             title = title,
@@ -365,7 +375,14 @@ private fun SettingsSheetContent(
                         trailingContent = {
                             Switch(
                                 checked = toggleStates[toggle.id] ?: toggle.value,
-                                onCheckedChange = { onToggleChange(toggle.id, it) }
+                                onCheckedChange = { onToggleChange(toggle.id, it) },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    uncheckedBorderColor = MaterialTheme.colorScheme.outline
+                                )
                             )
                         }
                     )
@@ -408,13 +425,13 @@ private fun SettingsSheetContent(
                         ) {
                             dropdown.options.forEachIndexed { optIndex, option ->
                                 DropdownMenuItem(
-                                    text = { Text(option) },
+                                    text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
                                     onClick = {
                                         onDropdownChange(dropdown.id, optIndex)
                                         expanded = false
                                     },
                                     leadingIcon = if (optIndex == selectedIndex) {
-                                        { Icon(Icons.Outlined.Check, contentDescription = null) }
+                                        { Icon(Icons.Outlined.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                                     } else null
                                 )
                             }
@@ -459,7 +476,10 @@ fun showTaskCreationSheet(
                             promise.resolve(mapOf("cancelled" to true))
                             (parent as? ViewGroup)?.removeView(this@apply)
                         },
-                        dragHandle = { BottomSheetDefaults.DragHandle() }
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
+                        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     ) {
                         TaskCreationSheetContent(
                             taskName = taskName.value,
@@ -499,18 +519,62 @@ fun showTaskCreationSheet(
                                 onClick = {
                                     selectedDate.value = datePickerState.selectedDateMillis
                                     showDatePicker.value = false
-                                }
+                                },
+                                colors = ButtonDefaults.textButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                )
                             ) {
                                 Text("OK")
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showDatePicker.value = false }) {
+                            TextButton(
+                                onClick = { showDatePicker.value = false },
+                                colors = ButtonDefaults.textButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
                                 Text("Cancel")
                             }
-                        }
+                        },
+                        colors = DatePickerDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            titleContentColor = MaterialTheme.colorScheme.onSurface,
+                            headlineContentColor = MaterialTheme.colorScheme.onSurface,
+                            weekdayContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            subheadContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            navigationContentColor = MaterialTheme.colorScheme.onSurface,
+                            yearContentColor = MaterialTheme.colorScheme.onSurface,
+                            currentYearContentColor = MaterialTheme.colorScheme.primary,
+                            selectedYearContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedYearContentColor = MaterialTheme.colorScheme.onPrimary,
+                            dayContentColor = MaterialTheme.colorScheme.onSurface,
+                            selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
+                            todayContentColor = MaterialTheme.colorScheme.primary,
+                            todayDateBorderColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
-                        DatePicker(state = datePickerState)
+                        DatePicker(
+                            state = datePickerState,
+                            colors = DatePickerDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                titleContentColor = MaterialTheme.colorScheme.onSurface,
+                                headlineContentColor = MaterialTheme.colorScheme.onSurface,
+                                weekdayContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                subheadContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                navigationContentColor = MaterialTheme.colorScheme.onSurface,
+                                yearContentColor = MaterialTheme.colorScheme.onSurface,
+                                currentYearContentColor = MaterialTheme.colorScheme.primary,
+                                selectedYearContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedYearContentColor = MaterialTheme.colorScheme.onPrimary,
+                                dayContentColor = MaterialTheme.colorScheme.onSurface,
+                                selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
+                                todayContentColor = MaterialTheme.colorScheme.primary,
+                                todayDateBorderColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
                     }
                 }
             }
@@ -566,7 +630,10 @@ fun showFolderCreationSheet(
                             promise.resolve(mapOf("cancelled" to true))
                             (parent as? ViewGroup)?.removeView(this@apply)
                         },
-                        dragHandle = { BottomSheetDefaults.DragHandle() }
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
+                        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     ) {
                         FolderCreationSheetContent(
                             folderName = folderName.value,
@@ -678,7 +745,13 @@ private fun FolderCreationSheetContent(
                     keyboardController?.hide()
                     onSubmit()
                 },
-                enabled = folderName.isNotBlank()
+                enabled = folderName.isNotBlank(),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             ) {
                 Icon(Icons.Outlined.Check, contentDescription = "Create folder")
             }
@@ -788,7 +861,13 @@ private fun TaskCreationSheetContent(
                     keyboardController?.hide()
                     onSubmit()
                 },
-                enabled = taskName.isNotBlank()
+                enabled = taskName.isNotBlank(),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             ) {
                 Icon(Icons.Outlined.Check, contentDescription = "Create task")
             }
@@ -834,6 +913,12 @@ private fun TaskCreationSheetContent(
                             modifier = Modifier.size(18.dp)
                         )
                     },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
                     modifier = Modifier.menuAnchor()
                 )
 
@@ -851,16 +936,16 @@ private fun TaskCreationSheetContent(
                         }
 
                         DropdownMenuItem(
-                            text = { Text(folder) },
+                            text = { Text(folder, color = MaterialTheme.colorScheme.onSurface) },
                             onClick = {
                                 onFolderChange(index)
                                 folderDropdownExpanded = false
                             },
                             leadingIcon = {
-                                Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+                                Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
                             },
                             trailingIcon = if (index == selectedFolderIndex) {
-                                { Icon(Icons.Outlined.Check, contentDescription = null) }
+                                { Icon(Icons.Outlined.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                             } else null
                         )
                     }
@@ -894,7 +979,15 @@ private fun TaskCreationSheetContent(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
-                }
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    labelColor = MaterialTheme.colorScheme.onSurface,
+                    iconColor = MaterialTheme.colorScheme.onSurface,
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             )
         }
     }

@@ -177,7 +177,7 @@ export default function FolderDetailScreen() {
         />
         <FloatingActionButton defaultFolder={folderName} />
         {selectionMode && (
-          <View style={styles.selectionActionsContainer}>
+          <View style={styles.selectionBarContainer}>
             <Pressable
               style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
               onPress={() => hasSelection && setMoveToFolderVisible(true)}
@@ -186,7 +186,7 @@ export default function FolderDetailScreen() {
               <Ionicons
                 name="folder-outline"
                 size={24}
-                color={hasSelection ? Colors.light.primary : Colors.light.textSecondary}
+                color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
               />
             </Pressable>
             <Pressable
@@ -197,7 +197,7 @@ export default function FolderDetailScreen() {
               <Ionicons
                 name="trash-outline"
                 size={24}
-                color={hasSelection ? Colors.light.error : Colors.light.textSecondary}
+                color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
               />
             </Pressable>
           </View>
@@ -223,7 +223,7 @@ export default function FolderDetailScreen() {
       />
       <FloatingActionButton defaultFolder={folderName} />
       {selectionMode && (
-        <View style={styles.selectionActionsContainer}>
+        <View style={styles.selectionBarContainer}>
           <Pressable
             style={[styles.selectionActionButton, !hasSelection && styles.selectionActionDisabled]}
             onPress={() => hasSelection && setMoveToFolderVisible(true)}
@@ -232,7 +232,7 @@ export default function FolderDetailScreen() {
             <Ionicons
               name="folder-outline"
               size={24}
-              color={hasSelection ? Colors.light.primary : Colors.light.textSecondary}
+              color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
             />
           </Pressable>
           <Pressable
@@ -243,7 +243,7 @@ export default function FolderDetailScreen() {
             <Ionicons
               name="trash-outline"
               size={24}
-              color={hasSelection ? Colors.light.error : Colors.light.textSecondary}
+              color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
             />
           </Pressable>
         </View>
@@ -299,21 +299,17 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     overflow: 'hidden',
   },
-  selectionActionsContainer: {
+  selectionBarContainer: {
     position: 'absolute',
     bottom: 16,
-    right: 88,
+    right: 20,
     flexDirection: 'row',
-    backgroundColor: Colors.light.surface,
+    alignItems: 'center',
+    backgroundColor: '#F3F3F3',
     borderRadius: 28,
     paddingHorizontal: 8,
     paddingVertical: 8,
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
+    gap: 4,
   },
   selectionActionButton: {
     width: 40,

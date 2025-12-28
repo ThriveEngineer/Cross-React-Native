@@ -51,6 +51,14 @@ class M3ExpressiveDropdownMenu(context: Context, appContext: AppContext) :
                     readOnly = true,
                     label = { Text(label) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth()
@@ -62,7 +70,7 @@ class M3ExpressiveDropdownMenu(context: Context, appContext: AppContext) :
                 ) {
                     options.forEachIndexed { index, option ->
                         DropdownMenuItem(
-                            text = { Text(option) },
+                            text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
                             onClick = {
                                 props.selectedIndex.value = index
                                 expanded = false

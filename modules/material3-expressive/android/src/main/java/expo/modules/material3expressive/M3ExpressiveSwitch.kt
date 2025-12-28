@@ -40,6 +40,13 @@ class M3ExpressiveSwitch(context: Context, appContext: AppContext) :
                     onValueChange(SwitchValueChangeEvent(newValue))
                 },
                 enabled = enabled,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    uncheckedBorderColor = MaterialTheme.colorScheme.outline
+                ),
                 modifier = modifier
             )
         }

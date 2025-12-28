@@ -63,7 +63,9 @@ class M3ExpressiveNavigationBar(context: Context, appContext: AppContext) :
 
         Material3ExpressiveTheme {
             NavigationBar(
-                modifier = modifier
+                modifier = modifier,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
             ) {
                 items.forEachIndexed { index, label ->
                     val isSelected = index == selectedIndex
@@ -85,7 +87,14 @@ class M3ExpressiveNavigationBar(context: Context, appContext: AppContext) :
                         onClick = {
                             props.selectedIndex.value = index
                             onItemSelected(NavigationItemSelectedEvent(index, label))
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     )
                 }
             }
