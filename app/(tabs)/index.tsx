@@ -1,19 +1,19 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, RefreshControl, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { TaskTile } from '../../src/components/TaskTile';
-import { TaskList } from '../../src/components/TaskList';
-import { FloatingActionButton } from '../../src/components/FloatingActionButton';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomAppBar } from '../../src/components/CustomAppBar';
-import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
-import { MoveToFolderSheet } from '../../src/components/MoveToFolderSheet';
+import { FloatingActionButton } from '../../src/components/FloatingActionButton';
 import { FocusTimer } from '../../src/components/FocusTimer';
-import { useTaskStore, useIncompleteTasks, useCompletedTasks } from '../../src/store/taskStore';
+import { MoveToFolderSheet } from '../../src/components/MoveToFolderSheet';
+import { TaskList } from '../../src/components/TaskList';
+import { TaskTile } from '../../src/components/TaskTile';
+import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
+import { Colors, FontSizes, Spacing } from '../../src/constants/theme';
 import { notionAutoSync } from '../../src/services/notionService';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
+import { useCompletedTasks, useIncompleteTasks, useTaskStore } from '../../src/store/taskStore';
 import { getDayNumber, getMonthNameShort } from '../../src/utils/dates';
 
 export default function TodayScreen() {
@@ -183,23 +183,27 @@ export default function TodayScreen() {
                 color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
               />
             </Pressable>
-            <Pressable
-              style={[styles.timerButton, !hasSelection && styles.selectionActionDisabled]}
-              onPress={() => {
-                if (hasSelection) {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  setFocusTimerVisible(true);
-                }
-              }}
-              disabled={!hasSelection}
-            >
-              <Ionicons
-                name="time-outline"
-                size={24}
-                color="#FFFFFF"
-              />
-            </Pressable>
           </View>
+        )}
+
+        {/* Timer Button - separate, only in selection mode */}
+        {selectionMode && (
+          <Pressable
+            style={[styles.timerButton, !hasSelection && styles.selectionActionDisabled]}
+            onPress={() => {
+              if (hasSelection) {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setFocusTimerVisible(true);
+              }
+            }}
+            disabled={!hasSelection}
+          >
+            <Ionicons
+              name="time-outline"
+              size={24}
+              color="#FFFFFF"
+            />
+          </Pressable>
         )}
 
         <ViewSettingsSheet
@@ -281,23 +285,27 @@ export default function TodayScreen() {
               color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
             />
           </Pressable>
-          <Pressable
-            style={[styles.timerButton, !hasSelection && styles.selectionActionDisabled]}
-            onPress={() => {
-              if (hasSelection) {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                setFocusTimerVisible(true);
-              }
-            }}
-            disabled={!hasSelection}
-          >
-            <Ionicons
-              name="time-outline"
-              size={24}
-              color="#FFFFFF"
-            />
-          </Pressable>
         </View>
+      )}
+
+      {/* Timer Button - separate, only in selection mode */}
+      {selectionMode && (
+        <Pressable
+          style={[styles.timerButton, !hasSelection && styles.selectionActionDisabled]}
+          onPress={() => {
+            if (hasSelection) {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setFocusTimerVisible(true);
+            }
+          }}
+          disabled={!hasSelection}
+        >
+          <Ionicons
+            name="time-outline"
+            size={24}
+            color="#FFFFFF"
+          />
+        </Pressable>
       )}
 
       <ViewSettingsSheet
@@ -425,13 +433,15 @@ const styles = StyleSheet.create({
   selectionBarContainer: {
     position: 'absolute',
     bottom: 16,
-    right: 20,
+    right: 84,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F3F3',
-    borderRadius: 28,
-    paddingLeft: 8,
+    backgroundColor: '#ffffffff',
+    borderRadius: 99,
+    paddingLeft: 14,
+    paddingRight: 10,
     paddingVertical: 8,
+    boxShadow: '0px 4px 35px rgba(0, 0, 0, 0.15)',
     gap: 4,
   },
   selectionActionButton: {
@@ -442,12 +452,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timerButton: {
+    position: 'absolute',
+    bottom: 16,
+    right: 20,
     width: 56,
     height: 56,
     borderRadius: 16,
     backgroundColor: Colors.light.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    boxShadow: '0px 4px 35px rgba(0, 0, 0, 0.15)',
   },
   selectionActionDisabled: {
     opacity: 0.5,

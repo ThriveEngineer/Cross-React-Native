@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Modal,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Spacing } from '../constants/theme';
+import { Spacing } from '../constants/theme';
 
 interface FocusTimerProps {
   visible: boolean;
@@ -216,6 +216,7 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 20,
     alignItems: 'center',
+    boxShadow: '0px 4px 13px 4px rgba(0, 0, 0, 0.30)',
   },
   durationContainer: {
     flexDirection: 'row',
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 60,
     paddingVertical: 14,
-    borderRadius: 28,
+    borderRadius: 16,
     width: '100%',
   },
   startButtonText: {
