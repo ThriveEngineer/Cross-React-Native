@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, FontSizes } from '../src/constants/theme';
 import { M3DropdownMenu } from 'material3-expressive';
+import { Icon } from '../src/components/Icon';
 
 type ThemeOption = 'system' | 'light' | 'dark';
 const THEME_OPTIONS = ['System', 'Light', 'Dark'] as const;
@@ -36,7 +36,7 @@ const ThemeRow: React.FC<ThemeRowProps> = ({
       <Text style={styles.themeDescription}>{description}</Text>
     </View>
     {isSelected && (
-      <Ionicons name="checkmark-circle" size={24} color={Colors.light.primary} />
+      <Icon name="tick-circle" size={24} color={Colors.light.primary} variant="Bold" />
     )}
   </Pressable>
 );
@@ -66,7 +66,7 @@ export default function ThemeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Ionicons name="chevron-back" size={24} color={Colors.light.text} />
+          <Icon name="chevron-back" size={24} color={Colors.light.text} />
         </Pressable>
         <Text style={styles.headerTitle}>Theme</Text>
         <View style={{ width: 24 }} />

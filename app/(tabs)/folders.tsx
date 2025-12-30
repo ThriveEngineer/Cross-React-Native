@@ -12,7 +12,6 @@ import {
   InteractionManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeIn, useAnimatedStyle, withSpring } from 'react-native-reanimated';
@@ -22,44 +21,7 @@ import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
 import { Folder } from '../../src/types/types';
 import { showM3FolderCreationSheet } from 'material3-expressive';
-
-// Icon mapping for folders (includes both React Native and Kotlin naming conventions)
-const FOLDER_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
-  'inbox': 'mail-outline',
-  'heart': 'heart-outline',
-  'favorite': 'heart-outline',
-  'check-square': 'checkbox-outline',
-  'folder': 'folder-outline',
-  'star': 'star-outline',
-  'bookmark': 'bookmark-outline',
-  'flag': 'flag-outline',
-  'briefcase': 'briefcase-outline',
-  'work': 'briefcase-outline',
-  'home': 'home-outline',
-  'cart': 'cart-outline',
-  'shopping': 'cart-outline',
-  'gift': 'gift-outline',
-  'bulb': 'bulb-outline',
-  'lightbulb': 'bulb-outline',
-  'fitness': 'fitness-outline',
-  'musical-notes': 'musical-notes-outline',
-  'music': 'musical-notes-outline',
-  'camera': 'camera-outline',
-  'airplane': 'airplane-outline',
-  'car': 'car-outline',
-  'restaurant': 'restaurant-outline',
-  'cafe': 'cafe-outline',
-  'medical': 'medical-outline',
-  'school': 'school-outline',
-  'library': 'library-outline',
-};
-
-// Available icons for new folders
-const AVAILABLE_ICONS = [
-  'folder', 'heart', 'star', 'bookmark', 'flag',
-  'briefcase', 'home', 'cart', 'gift', 'bulb',
-  'fitness', 'musical-notes',
-];
+import { Icon, FOLDER_ICON_MAP, AVAILABLE_FOLDER_ICONS, IconName } from '../../src/components/Icon';
 
 interface FolderTileProps {
   folder: Folder;
@@ -77,7 +39,7 @@ const FolderTile = memo<FolderTileProps>(({
   isSelectionMode,
   onPress,
 }) => {
-  const iconName = FOLDER_ICON_MAP[folder.icon] || 'folder-outline';
+  const iconName: IconName = FOLDER_ICON_MAP[folder.icon] || 'folder';
 
   return (
     <Pressable
@@ -90,19 +52,19 @@ const FolderTile = memo<FolderTileProps>(({
       {isSelectionMode && (
         <View style={styles.selectionCheckbox}>
           {folder.isDefault ? (
-            <Ionicons name="lock-closed-outline" size={24} color={Colors.light.textSecondary} />
+            <Icon name="lock-closed" size={24} color={Colors.light.textSecondary} />
           ) : isSelected ? (
-            <Ionicons name="checkmark-circle" size={24} color={Colors.light.primary} />
+            <Icon name="tick-circle" size={24} color={Colors.light.primary} variant="Bold" />
           ) : (
-            <Ionicons name="ellipse-outline" size={24} color={Colors.light.textSecondary} />
+            <Icon name="ellipse" size={24} color={Colors.light.textSecondary} />
           )}
         </View>
       )}
-      <Ionicons name={iconName} size={24} color={Colors.light.text} />
+      <Icon name={iconName} size={24} color={Colors.light.text} />
       <Text style={styles.folderName}>{folder.name}</Text>
       <View style={styles.folderSpacer} />
       {!isSelectionMode && (
-        <Ionicons name="chevron-forward" size={24} color={Colors.light.textSecondary} />
+        <Icon name="chevron-forward" size={24} color={Colors.light.textSecondary} />
       )}
     </Pressable>
   );
@@ -225,7 +187,7 @@ export default function FoldersScreen() {
         // Delete button when in selection mode
         selectedFolders.size > 0 && (
           <Pressable style={styles.deleteFab} onPress={handleDeleteSelected}>
-            <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+            <Icon name="trash" size={24} color="#FFFFFF" />
           </Pressable>
         )
       ) : (
@@ -248,13 +210,7 @@ export default function FoldersScreen() {
             }
           }}
         >
-          <Ionicons name="folder-open-outline" size={24} color="#FFFFFF" />
-          <Ionicons
-            name="add"
-            size={16}
-            color="#FFFFFF"
-            style={styles.fabAddIcon}
-          />
+          <Icon name="folder-add" size={24} color="#FFFFFF" />
         </Pressable>
       )}
 
@@ -287,12 +243,12 @@ export default function FoldersScreen() {
                 style={styles.iconSelector}
                 onPress={() => setShowIconPicker(!showIconPicker)}
               >
-                <Ionicons
-                  name={FOLDER_ICON_MAP[selectedIcon] || 'folder-outline'}
+                <Icon
+                  name={FOLDER_ICON_MAP[selectedIcon] || 'folder'}
                   size={24}
                   color={Colors.light.text}
                 />
-                <Ionicons
+                <Icon
                   name={showIconPicker ? 'chevron-up' : 'chevron-down'}
                   size={20}
                   color={Colors.light.textSecondary}
@@ -308,14 +264,14 @@ export default function FoldersScreen() {
                 onPress={handleCreateFolder}
                 disabled={!newFolderName.trim()}
               >
-                <Ionicons name="checkmark-circle" size={36} color="#FFFFFF" />
+                <Icon name="tick-circle" size={36} color="#FFFFFF" variant="Bold" />
               </Pressable>
             </View>
 
             {/* Icon picker grid */}
             {showIconPicker && (
               <View style={styles.iconGrid}>
-                {AVAILABLE_ICONS.map(icon => (
+                {AVAILABLE_FOLDER_ICONS.map(icon => (
                   <Pressable
                     key={icon}
                     style={[
@@ -327,8 +283,8 @@ export default function FoldersScreen() {
                       setSelectedIcon(icon);
                     }}
                   >
-                    <Ionicons
-                      name={FOLDER_ICON_MAP[icon] || 'folder-outline'}
+                    <Icon
+                      name={FOLDER_ICON_MAP[icon] || 'folder'}
                       size={24}
                       color={
                         selectedIcon === icon

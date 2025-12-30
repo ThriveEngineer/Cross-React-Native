@@ -8,6 +8,8 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.painter.Painter
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.records.Field
 import expo.modules.kotlin.records.Record
@@ -34,11 +36,23 @@ class M3ExpressiveNavigationBar(context: Context, appContext: AppContext) :
     override val props = NavigationBarProps()
     private val onItemSelected by EventDispatcher<NavigationItemSelectedEvent>()
 
-    private fun getIcon(name: String, filled: Boolean): ImageVector {
-        // Using only guaranteed-to-exist Material Icons
+    // Map icon names to drawable resource IDs
+    private fun getIconResourceId(name: String, filled: Boolean): Int? {
+        val resourceName = when (name.lowercase()) {
+            "today" -> if (filled) "ic_today_bold" else "ic_today_linear"
+            "calendar" -> if (filled) "ic_calendar_bold" else "ic_calendar_linear"
+            "folder" -> if (filled) "ic_folder_bold" else "ic_folder_linear"
+            else -> null
+        }
+
+        return resourceName?.let {
+            context.resources.getIdentifier(it, "drawable", context.packageName)
+        }?.takeIf { it != 0 }
+    }
+
+    // Fallback to Material Icons for icons we don't have custom drawables for
+    private fun getFallbackIcon(name: String, filled: Boolean): ImageVector {
         return when (name.lowercase()) {
-            "today", "calendar_today", "calendar", "event" -> if (filled) Icons.Filled.DateRange else Icons.Outlined.DateRange
-            "folder" -> if (filled) Icons.Filled.Folder else Icons.Outlined.Folder
             "home" -> if (filled) Icons.Filled.Home else Icons.Outlined.Home
             "settings" -> if (filled) Icons.Filled.Settings else Icons.Outlined.Settings
             "person", "account" -> if (filled) Icons.Filled.Person else Icons.Outlined.Person
@@ -71,16 +85,26 @@ class M3ExpressiveNavigationBar(context: Context, appContext: AppContext) :
                     val isSelected = index == selectedIndex
                     val iconName = icons.getOrNull(index) ?: "circle"
                     val selectedIconName = selectedIcons.getOrNull(index) ?: iconName
+                    val currentIconName = if (isSelected) selectedIconName else iconName
+
+                    // Try to get custom drawable resource ID
+                    val customIconResId = getIconResourceId(currentIconName, isSelected)
 
                     NavigationBarItem(
                         icon = {
-                            Icon(
-                                imageVector = getIcon(
-                                    if (isSelected) selectedIconName else iconName,
-                                    isSelected
-                                ),
-                                contentDescription = label
-                            )
+                            if (customIconResId != null) {
+                                // Use custom Iconsax drawable
+                                Icon(
+                                    painter = painterResource(id = customIconResId),
+                                    contentDescription = label
+                                )
+                            } else {
+                                // Fallback to Material Icons
+                                Icon(
+                                    imageVector = getFallbackIcon(currentIconName, isSelected),
+                                    contentDescription = label
+                                )
+                            }
                         },
                         label = { Text(label) },
                         selected = isSelected,

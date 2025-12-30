@@ -1,8 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet, Modal, ScrollView, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, BorderRadius } from '../../constants/theme';
 import * as Haptics from 'expo-haptics';
+import { Icon } from '../Icon';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -72,7 +72,7 @@ export const NativeDropdown: React.FC<NativeDropdownProps> = ({
         onPress={handleOpenPicker}
       >
         <Text style={styles.dropdownText}>{selectedValue}</Text>
-        <Ionicons name="chevron-down" size={16} color={Colors.light.textSecondary} />
+        <Icon name="chevron-down" size={16} color={Colors.light.textSecondary} />
       </Pressable>
 
       <Modal
@@ -105,7 +105,7 @@ export const NativeDropdown: React.FC<NativeDropdownProps> = ({
                     {option}
                   </Text>
                   {selectedIndex === index && (
-                    <Ionicons name="checkmark" size={18} color={Colors.light.primary} />
+                    <Icon name="tick-circle" size={18} color={Colors.light.primary} variant="Bold" />
                   )}
                 </Pressable>
               ))}

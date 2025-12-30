@@ -6,7 +6,6 @@ import {
   Platform,
   InteractionManager,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../store/taskStore';
@@ -14,17 +13,18 @@ import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { SortOption } from '../types/types';
 import { NativeSwitch, NativeBottomSheet, NativeDropdown } from './native';
 import { showM3SettingsSheet } from 'material3-expressive';
+import { Icon, IconName } from './Icon';
 
 interface ViewSettingsSheetProps {
   visible: boolean;
   onClose: () => void;
 }
 
-const SORT_OPTIONS: { value: SortOption; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { value: 'manual', label: 'Manual', icon: 'options-outline' },
-  { value: 'name', label: 'Name', icon: 'text-outline' },
-  { value: 'date', label: 'Date', icon: 'calendar-outline' },
-  { value: 'folder', label: 'Folder', icon: 'folder-outline' },
+const SORT_OPTIONS: { value: SortOption; label: string; icon: IconName }[] = [
+  { value: 'manual', label: 'Manual', icon: 'blend' },
+  { value: 'name', label: 'Name', icon: 'text' },
+  { value: 'date', label: 'Date', icon: 'calendar' },
+  { value: 'folder', label: 'Folder', icon: 'folder' },
 ];
 
 const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
@@ -120,7 +120,7 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
         {/* Completed Tasks Toggle */}
         <View style={styles.settingRow}>
           <View style={styles.settingLeft}>
-            <Ionicons name="checkmark-circle" size={22} color={Colors.light.text} />
+            <Icon name="tick-circle" size={22} color={Colors.light.text} variant="Bold" />
             <Text style={styles.settingLabel}>Completed tasks</Text>
           </View>
           <NativeSwitch
@@ -134,7 +134,7 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
         {/* Folder Names Toggle */}
         <View style={styles.settingRow}>
           <View style={styles.settingLeft}>
-            <Ionicons name="folder" size={22} color={Colors.light.text} />
+            <Icon name="folder" size={22} color={Colors.light.text} variant="Bold" />
             <Text style={styles.settingLabel}>Folder</Text>
           </View>
           <NativeSwitch
@@ -148,7 +148,7 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
       <View style={styles.settingsCard}>
         <View style={styles.settingRow}>
           <View style={styles.settingLeft}>
-            <Ionicons name="list" size={22} color={Colors.light.text} />
+            <Icon name="sort" size={22} color={Colors.light.text} variant="Bold" />
             <Text style={styles.settingLabel}>Sort</Text>
           </View>
           <NativeDropdown
@@ -166,12 +166,12 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
       <View style={styles.settingsCard}>
         <View style={[styles.settingRow, styles.disabledRow]}>
           <View style={styles.settingLeft}>
-            <Ionicons name="grid-outline" size={22} color={Colors.light.textSecondary} />
+            <Icon name="category" size={22} color={Colors.light.textSecondary} />
             <Text style={[styles.settingLabel, styles.disabledText]}>Group</Text>
           </View>
           <View style={styles.dropdownButton}>
             <Text style={[styles.dropdownText, styles.disabledText]}>None</Text>
-            <Ionicons name="chevron-down" size={16} color={Colors.light.textSecondary} />
+            <Icon name="chevron-down" size={16} color={Colors.light.textSecondary} />
           </View>
         </View>
       </View>

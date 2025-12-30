@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing } from '../constants/theme';
+import { Icon } from './Icon';
 
 interface FocusTimerProps {
   visible: boolean;
@@ -163,7 +163,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ visible, onClose }) => {
 
         {/* Close button at bottom */}
         <Pressable style={styles.closeButton} onPress={handleClose}>
-          <Ionicons name="close" size={32} color="#FFFFFF" />
+          <Icon name="close-circle" size={32} color="#FFFFFF" />
         </Pressable>
       </View>
     </View>

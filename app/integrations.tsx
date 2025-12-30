@@ -11,12 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore, useIsNotionConnected } from '../src/store/taskStore';
 import { NotionService, notionAutoSync } from '../src/services/notionService';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../src/constants/theme';
+import { Icon } from '../src/components/Icon';
 
 export default function IntegrationsScreen() {
   // Use selective subscription - only subscribe to Notion-related state
@@ -120,11 +120,11 @@ export default function IntegrationsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Ionicons name="chevron-back" size={24} color={Colors.light.text} />
+          <Icon name="chevron-back" size={24} color={Colors.light.text} />
         </Pressable>
         <Text style={styles.headerTitle}>Integrations</Text>
         <Pressable onPress={showHelp} hitSlop={10}>
-          <Ionicons name="help-circle-outline" size={24} color={Colors.light.text} />
+          <Icon name="info-circle" size={24} color={Colors.light.text} />
         </Pressable>
       </View>
 
@@ -145,12 +145,12 @@ export default function IntegrationsScreen() {
             <View style={styles.statusBadge}>
               {isNotionConnected ? (
                 <>
-                  <Ionicons name="checkmark-circle" size={14} color={Colors.light.success} />
+                  <Icon name="tick-circle" size={14} color={Colors.light.success} variant="Bold" />
                   <Text style={[styles.statusText, { color: Colors.light.success }]}>Connected</Text>
                 </>
               ) : (
                 <>
-                  <Ionicons name="alert-circle" size={14} color="#FF9500" />
+                  <Icon name="info-circle" size={14} color="#FF9500" />
                   <Text style={[styles.statusText, { color: '#FF9500' }]}>Not connected</Text>
                 </>
               )}
@@ -216,7 +216,7 @@ export default function IntegrationsScreen() {
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
                     <>
-                      <Ionicons name="sync" size={18} color="#FFFFFF" />
+                      <Icon name="refresh" size={18} color="#FFFFFF" />
                       <Text style={styles.syncButtonText}>Force Sync Now</Text>
                     </>
                   )}

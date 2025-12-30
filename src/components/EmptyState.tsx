@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
+import { Icon, IconName } from './Icon';
 
 interface EmptyStateProps {
   title: string;
   subtitle?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   actionLabel?: string;
   onAction?: () => void;
 }
@@ -14,13 +14,13 @@ interface EmptyStateProps {
 export const EmptyState: React.FC<EmptyStateProps> = ({
   title,
   subtitle,
-  icon = 'checkmark-circle-outline',
+  icon = 'tick-circle',
   actionLabel,
   onAction,
 }) => {
   return (
     <View style={styles.container}>
-      <Ionicons name={icon} size={64} color={Colors.light.textSecondary} />
+      <Icon name={icon} size={64} color={Colors.light.textSecondary} />
       <Text style={styles.title}>{title}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
       {actionLabel && onAction && (

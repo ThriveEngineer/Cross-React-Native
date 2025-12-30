@@ -7,11 +7,11 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTaskStore, useIsNotionConnected } from '../store/taskStore';
 import { Colors, Spacing, FontSizes } from '../constants/theme';
 import { NativeContextMenu, MenuOption } from './native';
+import { Icon, IconName } from './Icon';
 
 // Try to import GlassView for Liquid Glass effect
 let GlassView: any = null;
@@ -76,7 +76,7 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
   const menuOptions: MenuOption[] = [
     {
       label: 'View',
-      icon: 'eye-outline',
+      icon: 'setting-3',
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onOpenViewSettings();
@@ -84,7 +84,7 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
     },
     {
       label: 'Select',
-      icon: 'checkbox-outline',
+      icon: 'mouse-square',
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         toggleSelectionMode();
@@ -92,7 +92,7 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
     },
     {
       label: 'Settings',
-      icon: 'settings-outline',
+      icon: 'setting',
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onOpenSettings();
@@ -135,24 +135,24 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
   const renderSyncIndicator = () => {
     if (!isNotionConnected) return null;
 
-    let iconName: keyof typeof Ionicons.glyphMap = 'cloud-outline';
+    let iconName: IconName = 'cloud';
     let iconColor = Colors.light.textSecondary;
 
     if (syncState.isSyncing) {
       iconName = 'sync';
       iconColor = Colors.light.primary;
     } else if (syncState.errorCount > 0) {
-      iconName = 'cloud-offline-outline';
+      iconName = 'cloud-offline';
       iconColor = Colors.light.error;
     } else if (syncState.lastSyncTime) {
-      iconName = 'cloud-done-outline';
+      iconName = 'cloud-done';
       iconColor = Colors.light.success;
     }
 
     return (
       <Pressable onPress={showSyncDetails}>
         <GlassIconWrapper>
-          <Ionicons name={iconName} size={22} color={iconColor} />
+          <Icon name={iconName} size={22} color={iconColor} />
         </GlassIconWrapper>
       </Pressable>
     );
@@ -179,7 +179,7 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
         {renderSyncIndicator()}
         <NativeContextMenu options={menuOptions}>
           <GlassIconWrapper>
-            <Ionicons name="menu" size={24} color={Colors.light.text} />
+            <Icon name="menu" size={24} color={Colors.light.text} />
           </GlassIconWrapper>
         </NativeContextMenu>
       </View>

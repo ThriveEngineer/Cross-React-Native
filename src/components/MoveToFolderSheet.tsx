@@ -7,64 +7,12 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTaskStore } from '../store/taskStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { NativeBottomSheet } from './native';
 import { showM3SelectionSheet } from 'material3-expressive';
-
-// Icon mapping for folders (Ionicons to Material)
-const FOLDER_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
-  'inbox': 'mail-outline',
-  'heart': 'heart-outline',
-  'check-square': 'checkbox-outline',
-  'folder': 'folder-outline',
-  'star': 'star-outline',
-  'bookmark': 'bookmark-outline',
-  'flag': 'flag-outline',
-  'briefcase': 'briefcase-outline',
-  'home': 'home-outline',
-  'cart': 'cart-outline',
-  'gift': 'gift-outline',
-  'bulb': 'bulb-outline',
-  'fitness': 'fitness-outline',
-  'musical-notes': 'musical-notes-outline',
-  'camera': 'camera-outline',
-  'airplane': 'airplane-outline',
-  'car': 'car-outline',
-  'restaurant': 'restaurant-outline',
-  'cafe': 'cafe-outline',
-  'medical': 'medical-outline',
-  'school': 'school-outline',
-  'library': 'library-outline',
-};
-
-// Map folder icons to Material icons for Android
-const MATERIAL_ICON_MAP: Record<string, string> = {
-  'inbox': 'inbox',
-  'heart': 'favorite',
-  'check-square': 'check',
-  'folder': 'folder',
-  'star': 'star',
-  'bookmark': 'bookmark',
-  'flag': 'flag',
-  'briefcase': 'work',
-  'home': 'home',
-  'cart': 'shopping',
-  'gift': 'gift',
-  'bulb': 'lightbulb',
-  'fitness': 'fitness',
-  'musical-notes': 'music',
-  'camera': 'camera',
-  'airplane': 'flight',
-  'car': 'car',
-  'restaurant': 'restaurant',
-  'cafe': 'coffee',
-  'medical': 'health',
-  'school': 'school',
-  'library': 'library',
-};
+import { Icon, FOLDER_ICON_MAP, MATERIAL_ICON_MAP, IconName } from './Icon';
 
 interface MoveToFolderSheetProps {
   visible: boolean;
@@ -132,17 +80,17 @@ export const MoveToFolderSheet: React.FC<MoveToFolderSheetProps> = ({
         showsVerticalScrollIndicator={false}
       >
         {availableFolders.map((folder) => {
-          const iconName = FOLDER_ICON_MAP[folder.icon] || 'folder-outline';
+          const iconName: IconName = FOLDER_ICON_MAP[folder.icon] || 'folder';
           return (
             <Pressable
               key={folder.id}
               style={styles.folderRow}
               onPress={() => handleFolderSelect(folder.name)}
             >
-              <Ionicons name={iconName} size={24} color={Colors.light.text} />
+              <Icon name={iconName} size={24} color={Colors.light.text} />
               <Text style={styles.folderName}>{folder.name}</Text>
               <View style={styles.spacer} />
-              <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              <Icon name="chevron-forward" size={20} color={Colors.light.textSecondary} />
             </Pressable>
           );
         })}

@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { TaskList } from '../../src/components/TaskList';
 import { FloatingActionButton } from '../../src/components/FloatingActionButton';
@@ -18,37 +17,7 @@ import { MoveToFolderSheet } from '../../src/components/MoveToFolderSheet';
 import { useTaskStore } from '../../src/store/taskStore';
 import { notionAutoSync } from '../../src/services/notionService';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
-
-// Icon mapping for folders (includes both React Native and Kotlin naming conventions)
-const FOLDER_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
-  'inbox': 'mail-outline',
-  'heart': 'heart-outline',
-  'favorite': 'heart-outline',
-  'check-square': 'checkbox-outline',
-  'folder': 'folder-outline',
-  'star': 'star-outline',
-  'bookmark': 'bookmark-outline',
-  'flag': 'flag-outline',
-  'briefcase': 'briefcase-outline',
-  'work': 'briefcase-outline',
-  'home': 'home-outline',
-  'cart': 'cart-outline',
-  'shopping': 'cart-outline',
-  'gift': 'gift-outline',
-  'bulb': 'bulb-outline',
-  'lightbulb': 'bulb-outline',
-  'fitness': 'fitness-outline',
-  'musical-notes': 'musical-notes-outline',
-  'music': 'musical-notes-outline',
-  'camera': 'camera-outline',
-  'airplane': 'airplane-outline',
-  'car': 'car-outline',
-  'restaurant': 'restaurant-outline',
-  'cafe': 'cafe-outline',
-  'medical': 'medical-outline',
-  'school': 'school-outline',
-  'library': 'library-outline',
-};
+import { Icon, FOLDER_ICON_MAP, IconName } from '../../src/components/Icon';
 
 export default function FolderDetailScreen() {
   const { name } = useLocalSearchParams<{ name: string }>();
@@ -102,9 +71,9 @@ export default function FolderDetailScreen() {
 
   // Get folder info
   const folder = folders.find(f => f.name === folderName);
-  const iconName = folder?.icon
-    ? (FOLDER_ICON_MAP[folder.icon] || 'folder-outline')
-    : 'folder-outline';
+  const iconName: IconName = folder?.icon
+    ? (FOLDER_ICON_MAP[folder.icon] || 'folder')
+    : 'folder';
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -154,10 +123,10 @@ export default function FolderDetailScreen() {
   const Header = () => (
     <View style={styles.header}>
       <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backButton}>
-        <Ionicons name="chevron-back" size={24} color={Colors.light.text} />
+        <Icon name="chevron-back" size={24} color={Colors.light.text} />
       </Pressable>
       <View style={styles.headerCenter}>
-        <Ionicons name={iconName} size={22} color={Colors.light.text} />
+        <Icon name={iconName} size={22} color={Colors.light.text} />
         <Text style={styles.title} numberOfLines={1}>
           {folderName}
         </Text>
@@ -178,7 +147,7 @@ export default function FolderDetailScreen() {
         <EmptyState
           title={`No tasks in ${folderName}`}
           subtitle="Add tasks to this folder to see them here"
-          icon="folder-open-outline"
+          icon="folder-open"
         />
         <FloatingActionButton defaultFolder={folderName} />
         {selectionMode && (
@@ -188,8 +157,8 @@ export default function FolderDetailScreen() {
               onPress={() => hasSelection && setMoveToFolderVisible(true)}
               disabled={!hasSelection}
             >
-              <Ionicons
-                name="folder-outline"
+              <Icon
+                name="folder"
                 size={24}
                 color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
               />
@@ -199,8 +168,8 @@ export default function FolderDetailScreen() {
               onPress={() => hasSelection && handleDeleteSelected()}
               disabled={!hasSelection}
             >
-              <Ionicons
-                name="trash-outline"
+              <Icon
+                name="trash"
                 size={24}
                 color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
               />
@@ -234,8 +203,8 @@ export default function FolderDetailScreen() {
             onPress={() => hasSelection && setMoveToFolderVisible(true)}
             disabled={!hasSelection}
           >
-            <Ionicons
-              name="folder-outline"
+            <Icon
+              name="folder"
               size={24}
               color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
             />
@@ -245,8 +214,8 @@ export default function FolderDetailScreen() {
             onPress={() => hasSelection && handleDeleteSelected()}
             disabled={!hasSelection}
           >
-            <Ionicons
-              name="trash-outline"
+            <Icon
+              name="trash"
               size={24}
               color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
             />

@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, RefreshControl, Alert, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { FlashList } from '@shopify/flash-list';
@@ -10,6 +9,7 @@ import { FloatingActionButton } from '../../src/components/FloatingActionButton'
 import { CustomAppBar } from '../../src/components/CustomAppBar';
 import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
 import { MoveToFolderSheet } from '../../src/components/MoveToFolderSheet';
+import { Icon } from '../../src/components/Icon';
 import { useTaskStore, useIncompleteTasks } from '../../src/store/taskStore';
 import { notionAutoSync } from '../../src/services/notionService';
 import { Colors, Spacing, FontSizes } from '../../src/constants/theme';
@@ -192,7 +192,6 @@ export default function UpcomingScreen() {
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           getItemType={getItemType}
-          estimatedItemSize={50}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -216,8 +215,8 @@ export default function UpcomingScreen() {
             onPress={() => hasSelection && setMoveToFolderVisible(true)}
             disabled={!hasSelection}
           >
-            <Ionicons
-              name="folder-outline"
+            <Icon
+              name="folder"
               size={24}
               color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
             />
@@ -227,8 +226,8 @@ export default function UpcomingScreen() {
             onPress={() => hasSelection && handleDeleteSelected()}
             disabled={!hasSelection}
           >
-            <Ionicons
-              name="trash-outline"
+            <Icon
+              name="trash"
               size={24}
               color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
             />

@@ -13,7 +13,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTaskStore } from '../store/taskStore';
@@ -21,6 +20,7 @@ import { Colors, Spacing, FontSizes } from '../constants/theme';
 import { format } from 'date-fns';
 import { showM3DatePicker, showM3TaskCreationSheet } from 'material3-expressive';
 import { NativeDropdown, NativeBottomSheet } from './native';
+import { Icon } from './Icon';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -115,7 +115,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
         }}
         style={[styles.fab, animatedStyle]}
       >
-        <Ionicons
+        <Icon
           name="add"
           size={28}
           color="#FFFFFF"
@@ -168,7 +168,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
                 }
               }}
             >
-              <Ionicons name="calendar-outline" size={18} color={Colors.light.textSecondary} />
+              <Icon name="calendar" size={18} color={Colors.light.textSecondary} />
               <Text style={styles.selectorChipText}>
                 {selectedDate ? format(selectedDate, 'MMM d') : 'No date'}
               </Text>
@@ -180,7 +180,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
                   }}
                   hitSlop={10}
                 >
-                  <Ionicons name="close-circle" size={16} color={Colors.light.textSecondary} />
+                  <Icon name="close-circle" size={16} color={Colors.light.textSecondary} />
                 </Pressable>
               )}
             </Pressable>
@@ -194,7 +194,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
               onPress={handleCreate}
               disabled={!taskName.trim()}
             >
-              <Ionicons name="checkmark-circle" size={36} color="#FFFFFF" />
+              <Icon name="tick-circle" size={36} color="#FFFFFF" variant="Bold" />
             </Pressable>
           </View>
 

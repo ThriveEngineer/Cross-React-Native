@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Modal, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme';
+import { Icon } from '../Icon';
 
 // Note: @expo/ui requires a development build (npx expo prebuild)
 // For Expo Go compatibility, we use a custom React Native Modal picker
@@ -38,7 +38,7 @@ export const NativePicker: React.FC<NativePickerProps> = ({
         <Text style={styles.pickerButtonText}>
           {selectedOption?.label || placeholder}
         </Text>
-        <Ionicons name="chevron-down" size={20} color={Colors.light.textSecondary} />
+        <Icon name="chevron-down" size={20} color={Colors.light.textSecondary} />
       </Pressable>
 
       <Modal
@@ -55,7 +55,7 @@ export const NativePicker: React.FC<NativePickerProps> = ({
             <View style={styles.pickerHeader}>
               <Text style={styles.pickerTitle}>Select</Text>
               <Pressable onPress={() => setPickerVisible(false)}>
-                <Ionicons name="close" size={24} color={Colors.light.text} />
+                <Icon name="close-circle" size={24} color={Colors.light.text} />
               </Pressable>
             </View>
             <ScrollView style={styles.pickerScroll}>
@@ -77,7 +77,7 @@ export const NativePicker: React.FC<NativePickerProps> = ({
                       {option.label}
                     </Text>
                     {selectedValue === option.value && (
-                      <Ionicons name="checkmark" size={20} color={Colors.light.primary} />
+                      <Icon name="tick-circle" size={20} color={Colors.light.primary} variant="Bold" />
                     )}
                   </Pressable>
                   {index < options.length - 1 && <View style={styles.pickerDivider} />}

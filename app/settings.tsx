@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../src/constants/theme';
+import { Icon, IconName } from '../src/components/Icon';
 
 interface SettingRowProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   title: string;
   subtitle?: string;
   onPress?: () => void;
@@ -34,7 +34,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
     onPress={disabled ? undefined : onPress}
     disabled={disabled}
   >
-    <Ionicons
+    <Icon
       name={icon}
       size={22}
       color={disabled ? Colors.light.textSecondary : Colors.light.text}
@@ -48,7 +48,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
       )}
     </View>
     {showArrow && (
-      <Ionicons
+      <Icon
         name="chevron-forward"
         size={20}
         color={Colors.light.textSecondary}
@@ -75,7 +75,7 @@ export default function SettingsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Ionicons name="chevron-back" size={24} color={Colors.light.text} />
+          <Icon name="chevron-back" size={24} color={Colors.light.text} />
         </Pressable>
         <Text style={styles.headerTitle}>Settings</Text>
         <View style={{ width: 24 }} />
@@ -90,7 +90,7 @@ export default function SettingsScreen() {
         <View style={styles.settingsContainer}>
           {/* Theme */}
           <SettingRow
-            icon="color-palette"
+            icon="paintbucket"
             title="Theme"
             showArrow={true}
             onPress={handleTheme}
@@ -100,7 +100,7 @@ export default function SettingsScreen() {
 
           {/* Language */}
           <SettingRow
-            icon="globe-outline"
+            icon="global"
             title="Language | Coming soon!"
             disabled={true}
           />
@@ -109,7 +109,7 @@ export default function SettingsScreen() {
 
           {/* Integrations */}
           <SettingRow
-            icon="apps-outline"
+            icon="component"
             title="Integrations"
             onPress={handleIntegrations}
           />
@@ -118,7 +118,7 @@ export default function SettingsScreen() {
 
           {/* Feedback */}
           <SettingRow
-            icon="thumbs-up-outline"
+            icon="like"
             title="Feedback"
           />
 
@@ -126,7 +126,7 @@ export default function SettingsScreen() {
 
           {/* Follow Us */}
           <SettingRow
-            icon="chatbubbles-outline"
+            icon="messages"
             title="Follow us"
           />
         </View>

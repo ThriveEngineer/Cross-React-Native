@@ -1,32 +1,31 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Platform, DynamicColorIOS, View, StyleSheet } from 'react-native';
-import { Tabs, usePathname, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
 import { Colors } from '../../src/constants/theme';
 import { M3NavigationBar } from 'material3-expressive';
 
 // Try to use native tabs with Liquid Glass on iOS
 let NativeTabs: any = null;
-let Icon: any = null;
+let NativeIcon: any = null;
 let Label: any = null;
 
 try {
   const nativeTabsModule = require('expo-router/unstable-native-tabs');
   NativeTabs = nativeTabsModule.NativeTabs;
-  Icon = nativeTabsModule.Icon;
+  NativeIcon = nativeTabsModule.Icon;
   Label = nativeTabsModule.Label;
 } catch (e) {
   // Native tabs not available
 }
 
-// Tab configuration
+// Tab configuration - icon names match both Iconsax (Android drawables) and are used for SF Symbols mapping
 const TABS = [
-  { name: 'index', label: 'Today', icon: 'today', selectedIcon: 'today' },
-  { name: 'upcoming', label: 'Upcoming', icon: 'calendar', selectedIcon: 'calendar' },
-  { name: 'folders', label: 'Folders', icon: 'folder', selectedIcon: 'folder' },
+  { name: 'index', label: 'Today', icon: 'today', sfSymbol: 'calendar.day.timeline.left' },
+  { name: 'upcoming', label: 'Upcoming', icon: 'calendar', sfSymbol: 'calendar' },
+  { name: 'folders', label: 'Folders', icon: 'folder', sfSymbol: 'folder.fill' },
 ];
 
-// Native tabs layout for iOS with Liquid Glass
+// Native tabs layout for iOS with Liquid Glass and SF Symbols
 function NativeTabLayout() {
   if (!NativeTabs) return null;
 
@@ -41,23 +40,17 @@ function NativeTabLayout() {
       }}
       tintColor={tintColor}
     >
-      <NativeTabs.Trigger name="index">
-        <Icon sf="calendar.day.timeline.left" />
-        <Label>Today</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="upcoming">
-        <Icon sf="calendar" />
-        <Label>Upcoming</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="folders">
-        <Icon sf="folder.fill" />
-        <Label>Folders</Label>
-      </NativeTabs.Trigger>
+      {TABS.map((tab) => (
+        <NativeTabs.Trigger key={tab.name} name={tab.name}>
+          <NativeIcon sf={tab.sfSymbol} />
+          <Label>{tab.label}</Label>
+        </NativeTabs.Trigger>
+      ))}
     </NativeTabs>
   );
 }
 
-// Custom M3 Tab Bar for Android
+// Native M3 Navigation Bar for Android using custom Iconsax drawables
 function M3TabBar({ state, navigation }: any) {
   const handleItemSelected = useCallback((index: number) => {
     const route = state.routes[index];
@@ -73,31 +66,26 @@ function M3TabBar({ state, navigation }: any) {
   }, [state.routes, navigation]);
 
   return (
-    <View style={m3Styles.tabBarContainer}>
+    <View style={styles.tabBarContainer}>
       <M3NavigationBar
-        items={TABS.map(t => t.label)}
+        items={TABS.map(tab => tab.label)}
+        icons={TABS.map(tab => tab.icon)}
+        selectedIcons={TABS.map(tab => tab.icon)}
         selectedIndex={state.index}
-        icons={TABS.map(t => t.icon)}
-        selectedIcons={TABS.map(t => t.selectedIcon)}
-        onItemSelected={handleItemSelected}
-        style={m3Styles.navigationBar}
+        onItemSelected={(index) => handleItemSelected(index)}
+        style={styles.navigationBar}
       />
     </View>
   );
 }
 
-// Set to true after running: npx expo run:android
-// This requires a native rebuild to work
-const USE_M3_NAVIGATION_BAR = true;
-
-// Fallback JS tabs layout (iOS fallback and non-M3)
+// Fallback JS tabs layout
 function JSTabLayout() {
   const isAndroid = Platform.OS === 'android';
-  const useM3TabBar = isAndroid && USE_M3_NAVIGATION_BAR;
 
   return (
     <Tabs
-      tabBar={useM3TabBar ? (props) => <M3TabBar {...props} /> : undefined}
+      tabBar={isAndroid ? (props) => <M3TabBar {...props} /> : undefined}
       screenOptions={{
         tabBarActiveTintColor: Colors.light.primary,
         tabBarInactiveTintColor: Colors.light.textSecondary,
@@ -109,54 +97,22 @@ function JSTabLayout() {
           paddingBottom: 8,
           paddingTop: 8,
         },
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
         headerShown: false,
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Today',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "today" : "today-outline"}
-              size={focused ? 30 : 28}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="upcoming"
-        options={{
-          title: 'Upcoming',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "calendar" : "calendar-outline"}
-              size={focused ? 30 : 28}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="folders"
-        options={{
-          title: 'Folders',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "folder" : "folder-outline"}
-              size={focused ? 30 : 28}
-              color={color}
-            />
-          ),
-        }}
-      />
+      {TABS.map((tab) => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{ title: tab.label }}
+        />
+      ))}
     </Tabs>
   );
 }
 
-const m3Styles = StyleSheet.create({
+const styles = StyleSheet.create({
   tabBarContainer: {
     backgroundColor: Colors.light.surface,
   },
@@ -171,6 +127,6 @@ export default function TabLayout() {
     return <NativeTabLayout />;
   }
 
-  // Fallback to JS tabs
+  // Use JS tabs with native M3NavigationBar on Android
   return <JSTabLayout />;
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme';
+import { Icon, IconName } from '../Icon';
 
 // Note: @expo/ui requires a development build (npx expo prebuild)
 // For Expo Go compatibility, we use a custom React Native Modal menu
@@ -9,7 +9,7 @@ import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme'
 
 export interface MenuOption {
   label: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   onPress: () => void;
   destructive?: boolean;
 }
@@ -53,7 +53,7 @@ export const NativeContextMenu: React.FC<NativeContextMenuProps> = ({
                   }}
                 >
                   {option.icon && (
-                    <Ionicons
+                    <Icon
                       name={option.icon}
                       size={20}
                       color={option.destructive ? Colors.light.error : Colors.light.text}

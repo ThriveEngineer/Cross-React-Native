@@ -12,11 +12,12 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Task } from '../types/types';
 import { useTaskStore } from '../store/taskStore';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../constants/theme';
+import { Icon } from './Icon';
+import { TickCircle } from 'iconsax-react-nativejs';
 
 interface TaskTileProps {
   task: Task;
@@ -112,9 +113,9 @@ const TaskTileComponent: React.FC<TaskTileProps> = ({ task, onPress, onLongPress
       {selectionMode && (
         <View style={styles.selectionCheckbox}>
           {isSelected ? (
-            <Ionicons name="checkmark-circle" size={24} color={Colors.light.primary} />
+            <Icon name="tick-circle" size={24} color={Colors.light.primary} variant="Bold" />
           ) : (
-            <Ionicons name="ellipse-outline" size={24} color={Colors.light.textSecondary} />
+            <Icon name="ellipse" size={24} color={Colors.light.textSecondary} />
           )}
         </View>
       )}
@@ -136,7 +137,7 @@ const TaskTileComponent: React.FC<TaskTileProps> = ({ task, onPress, onLongPress
           ]}
         >
           <Animated.View style={animatedCheckStyle}>
-            <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+            <TickCircle size={14} color="#FFFFFF" variant="Bold" />
           </Animated.View>
         </View>
       )}

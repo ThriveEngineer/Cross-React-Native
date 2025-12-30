@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -11,6 +10,7 @@ import { MoveToFolderSheet } from '../../src/components/MoveToFolderSheet';
 import { TaskList } from '../../src/components/TaskList';
 import { TaskTile } from '../../src/components/TaskTile';
 import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
+import { Icon } from '../../src/components/Icon';
 import { Colors, FontSizes, Spacing } from '../../src/constants/theme';
 import { notionAutoSync } from '../../src/services/notionService';
 import { useCompletedTasks, useIncompleteTasks, useTaskStore } from '../../src/store/taskStore';
@@ -118,7 +118,7 @@ export default function TodayScreen() {
         >
           {/* Open Tasks Section */}
           <View style={styles.sectionHeader}>
-            <Ionicons name="close-circle" size={16} color={Colors.light.text} />
+            <Icon name="close-square" size={16} color={Colors.light.text} variant="Bold" />
             <Text style={styles.sectionTitle}>Open</Text>
           </View>
           <View style={styles.sectionContainer}>
@@ -137,7 +137,7 @@ export default function TodayScreen() {
 
           {/* Completed Tasks Section */}
           <View style={styles.sectionHeader}>
-            <Ionicons name="checkmark-circle" size={16} color={Colors.light.text} />
+            <Icon name="tick-square" size={16} color={Colors.light.text} variant="Bold" />
             <Text style={styles.sectionTitle}>Completed</Text>
           </View>
           <View style={[styles.sectionContainer, styles.completedSection]}>
@@ -166,8 +166,8 @@ export default function TodayScreen() {
               onPress={() => hasSelection && setMoveToFolderVisible(true)}
               disabled={!hasSelection}
             >
-              <Ionicons
-                name="folder-outline"
+              <Icon
+                name="folder"
                 size={24}
                 color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
               />
@@ -177,8 +177,8 @@ export default function TodayScreen() {
               onPress={() => hasSelection && handleDeleteSelected()}
               disabled={!hasSelection}
             >
-              <Ionicons
-                name="trash-outline"
+              <Icon
+                name="trash"
                 size={24}
                 color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
               />
@@ -198,8 +198,8 @@ export default function TodayScreen() {
             }}
             disabled={!hasSelection}
           >
-            <Ionicons
-              name="time-outline"
+            <Icon
+              name="timer"
               size={24}
               color="#FFFFFF"
             />
@@ -268,8 +268,8 @@ export default function TodayScreen() {
             onPress={() => hasSelection && setMoveToFolderVisible(true)}
             disabled={!hasSelection}
           >
-            <Ionicons
-              name="folder-outline"
+            <Icon
+              name="folder"
               size={24}
               color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
             />
@@ -279,8 +279,8 @@ export default function TodayScreen() {
             onPress={() => hasSelection && handleDeleteSelected()}
             disabled={!hasSelection}
           >
-            <Ionicons
-              name="trash-outline"
+            <Icon
+              name="trash"
               size={24}
               color={hasSelection ? Colors.light.text : Colors.light.textSecondary}
             />
@@ -300,8 +300,8 @@ export default function TodayScreen() {
           }}
           disabled={!hasSelection}
         >
-          <Ionicons
-            name="time-outline"
+          <Icon
+            name="timer"
             size={24}
             color="#FFFFFF"
           />
