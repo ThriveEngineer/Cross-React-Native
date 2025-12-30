@@ -13,7 +13,9 @@ import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.setViewTreeLifecycleOwner
@@ -21,8 +23,19 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import androidx.activity.ComponentActivity
 
 class Material3ExpressiveModule : Module() {
+    // Flag to track if Compose has been pre-warmed
+    private var composePreWarmed = false
+
     override fun definition() = ModuleDefinition {
         Name("Material3Expressive")
+
+        // Pre-warm Compose infrastructure on module load for faster first sheet
+        OnCreate {
+            val activity = appContext.currentActivity as? ComponentActivity
+            activity?.runOnUiThread {
+                preWarmCompose(activity)
+            }
+        }
 
         // Function to show M3 Date Picker Dialog
         AsyncFunction("showDatePicker") { options: Map<String, Any?>, promise: Promise ->
@@ -326,5 +339,38 @@ class Material3ExpressiveModule : Module() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
+    }
+
+    /**
+     * Pre-warms the Compose infrastructure by creating and immediately disposing
+     * a minimal ComposeView. This initializes Compose's internal caches and
+     * makes subsequent sheet openings significantly faster.
+     */
+    private fun preWarmCompose(activity: ComponentActivity) {
+        if (composePreWarmed) return
+        composePreWarmed = true
+
+        try {
+            val warmupView = ComposeView(activity).apply {
+                setViewTreeLifecycleOwner(activity)
+                setViewTreeSavedStateRegistryOwner(activity)
+
+                setContent {
+                    Material3ExpressiveTheme {
+                        // Minimal composable to trigger Compose initialization
+                        Box(modifier = Modifier.size(0.dp))
+                    }
+                }
+            }
+
+            // Add and immediately remove to trigger initialization without showing anything
+            val decorView = activity.window.decorView as ViewGroup
+            decorView.addView(warmupView, ViewGroup.LayoutParams(0, 0))
+            decorView.post {
+                decorView.removeView(warmupView)
+            }
+        } catch (e: Exception) {
+            // Silently ignore pre-warming failures
+        }
     }
 }

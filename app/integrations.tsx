@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, memo } from 'react';
 import {
   View,
   Text,
@@ -13,18 +13,28 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore, useIsNotionConnected } from '../src/store/taskStore';
 import { NotionService, notionAutoSync } from '../src/services/notionService';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../src/constants/theme';
 
 export default function IntegrationsScreen() {
+  // Use selective subscription - only subscribe to Notion-related state
   const {
     notionApiKey,
     notionDatabaseId,
     syncState,
     setNotionCredentials,
     clearNotionCredentials,
-  } = useTaskStore();
+  } = useTaskStore(
+    useShallow(state => ({
+      notionApiKey: state.notionApiKey,
+      notionDatabaseId: state.notionDatabaseId,
+      syncState: state.syncState,
+      setNotionCredentials: state.setNotionCredentials,
+      clearNotionCredentials: state.clearNotionCredentials,
+    }))
+  );
 
   const isNotionConnected = useIsNotionConnected();
 

@@ -1,12 +1,14 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, memo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Platform,
+  InteractionManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../store/taskStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { SortOption } from '../types/types';
@@ -25,10 +27,11 @@ const SORT_OPTIONS: { value: SortOption; label: string; icon: keyof typeof Ionic
   { value: 'folder', label: 'Folder', icon: 'folder-outline' },
 ];
 
-export const ViewSettingsSheet: React.FC<ViewSettingsSheetProps> = ({
+const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
   visible,
   onClose,
 }) => {
+  // Use selective subscription - only subscribe to view settings state
   const {
     showCompletedInToday,
     showFolderNames,
@@ -36,40 +39,54 @@ export const ViewSettingsSheet: React.FC<ViewSettingsSheetProps> = ({
     setShowCompletedInToday,
     setShowFolderNames,
     setSortOption,
-  } = useTaskStore();
+  } = useTaskStore(
+    useShallow(state => ({
+      showCompletedInToday: state.showCompletedInToday,
+      showFolderNames: state.showFolderNames,
+      sortOption: state.sortOption,
+      setShowCompletedInToday: state.setShowCompletedInToday,
+      setShowFolderNames: state.setShowFolderNames,
+      setSortOption: state.setSortOption,
+    }))
+  );
 
-  // Use native Android sheet
+  // Use native Android sheet - defer to allow animations to complete first
   useEffect(() => {
     if (visible && Platform.OS === 'android') {
-      const currentSortIndex = SORT_OPTIONS.findIndex(o => o.value === sortOption);
+      // Wait for any ongoing animations/interactions to complete before showing native sheet
+      const handle = InteractionManager.runAfterInteractions(() => {
+        const currentSortIndex = SORT_OPTIONS.findIndex(o => o.value === sortOption);
 
-      showM3SettingsSheet({
-        title: '',
-        toggles: [
-          { id: 'completed', title: 'Completed tasks', icon: 'check', value: showCompletedInToday },
-          { id: 'folders', title: 'Folder', icon: 'folder', value: showFolderNames },
-        ],
-        dropdowns: [
-          { id: 'sort', title: 'Sort', icon: 'sort', options: SORT_OPTIONS.map(o => o.label), selectedIndex: currentSortIndex >= 0 ? currentSortIndex : 0 },
-          { id: 'group', title: 'Group', icon: 'grid', options: ['None'], selectedIndex: 0 },
-        ],
-      }).then((result) => {
-        if (!result.cancelled) {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          if (result.toggles) {
-            if (result.toggles.completed !== undefined) {
-              setShowCompletedInToday(result.toggles.completed);
+        showM3SettingsSheet({
+          title: '',
+          toggles: [
+            { id: 'completed', title: 'Completed tasks', icon: 'check', value: showCompletedInToday },
+            { id: 'folders', title: 'Folder', icon: 'folder', value: showFolderNames },
+          ],
+          dropdowns: [
+            { id: 'sort', title: 'Sort', icon: 'sort', options: SORT_OPTIONS.map(o => o.label), selectedIndex: currentSortIndex >= 0 ? currentSortIndex : 0 },
+            { id: 'group', title: 'Group', icon: 'grid', options: ['None'], selectedIndex: 0 },
+          ],
+        }).then((result) => {
+          if (!result.cancelled) {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            if (result.toggles) {
+              if (result.toggles.completed !== undefined) {
+                setShowCompletedInToday(result.toggles.completed);
+              }
+              if (result.toggles.folders !== undefined) {
+                setShowFolderNames(result.toggles.folders);
+              }
             }
-            if (result.toggles.folders !== undefined) {
-              setShowFolderNames(result.toggles.folders);
+            if (result.dropdowns?.sort !== undefined) {
+              setSortOption(SORT_OPTIONS[result.dropdowns.sort].value);
             }
           }
-          if (result.dropdowns?.sort !== undefined) {
-            setSortOption(SORT_OPTIONS[result.dropdowns.sort].value);
-          }
-        }
-        onClose();
+          onClose();
+        });
       });
+
+      return () => handle.cancel();
     }
   }, [visible]);
 
@@ -206,3 +223,6 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
   },
 });
+
+// Memoize the component to prevent unnecessary re-renders
+export const ViewSettingsSheet = memo(ViewSettingsSheetComponent);

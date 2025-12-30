@@ -1,8 +1,8 @@
-import React, { useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, RefreshControl } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { TaskTile } from './TaskTile';
 import { Task } from '../types/types';
-import { useTaskStore } from '../store/taskStore';
 import { Colors, Spacing, FontSizes } from '../constants/theme';
 
 interface TaskListProps {
@@ -20,8 +20,6 @@ export const TaskList: React.FC<TaskListProps> = ({
   isRefreshing = false,
   ListHeaderComponent,
 }) => {
-  const { sortOption } = useTaskStore();
-
   const renderItem = useCallback(
     ({ item }: { item: Task }) => <TaskTile task={item} />,
     []
@@ -41,10 +39,11 @@ export const TaskList: React.FC<TaskListProps> = ({
   }
 
   return (
-    <FlatList
+    <FlashList
       data={tasks}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
+      estimatedItemSize={56}
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={ListHeaderComponent}
@@ -67,42 +66,57 @@ interface GroupedTaskListProps {
   isRefreshing?: boolean;
 }
 
+// Flattened list item types for FlashList
+type GroupedListItem =
+  | { type: 'header'; title: string }
+  | { type: 'task'; task: Task };
+
 export const GroupedTaskList: React.FC<GroupedTaskListProps> = ({
   groups,
   onRefresh,
   isRefreshing = false,
 }) => {
-  const sections = Array.from(groups.entries()).map(([title, tasks]) => ({
-    title,
-    data: tasks,
-  }));
-
-  const renderSectionHeader = useCallback(
-    (title: string) => (
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-      </View>
-    ),
-    []
-  );
+  // Flatten groups into a single array for FlashList - better performance
+  const flatData = useMemo((): GroupedListItem[] => {
+    const items: GroupedListItem[] = [];
+    groups.forEach((tasks, title) => {
+      items.push({ type: 'header', title });
+      tasks.forEach(task => {
+        items.push({ type: 'task', task });
+      });
+    });
+    return items;
+  }, [groups]);
 
   const renderItem = useCallback(
-    ({ item }: { item: Task }) => <TaskTile task={item} />,
+    ({ item }: { item: GroupedListItem }) => {
+      if (item.type === 'header') {
+        return (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{item.title}</Text>
+          </View>
+        );
+      }
+      return <TaskTile task={item.task} />;
+    },
     []
   );
 
+  const keyExtractor = useCallback((item: GroupedListItem) => {
+    if (item.type === 'header') return `header-${item.title}`;
+    return `task-${item.task.id}`;
+  }, []);
+
+  const getItemType = useCallback((item: GroupedListItem) => item.type, []);
+
+  // Use FlashList for better performance with large lists
   return (
-    <FlatList
-      data={sections}
-      renderItem={({ item: section }) => (
-        <View key={section.title}>
-          {renderSectionHeader(section.title)}
-          {section.data.map(task => (
-            <View key={task.id}>{renderItem({ item: task })}</View>
-          ))}
-        </View>
-      )}
-      keyExtractor={item => item.title}
+    <FlashList
+      data={flatData}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      getItemType={getItemType}
+      estimatedItemSize={50}
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
       refreshControl={

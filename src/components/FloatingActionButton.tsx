@@ -1,10 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import {
   View,
+  Text,
   Pressable,
   StyleSheet,
   TextInput,
   Platform,
+  InteractionManager,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -44,18 +46,20 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   // Open task creation (only in normal mode, FAB is hidden in selection mode)
   const handlePress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // On Android, use native sheet
+    // On Android, use native sheet - defer to allow button animation to complete
     if (Platform.OS === 'android') {
-      showM3TaskCreationSheet({
-        folders: availableFolders.map(f => f.name),
-        selectedFolderIndex: defaultFolderIndex,
-      }).then((result) => {
-        if (!result.cancelled && result.taskName) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          const folderName = availableFolders[result.folderIndex ?? 0]?.name ?? defaultFolder;
-          const dueDate = result.dueDateMillis ? new Date(result.dueDateMillis).toISOString() : undefined;
-          addTask(result.taskName, folderName, dueDate);
-        }
+      InteractionManager.runAfterInteractions(() => {
+        showM3TaskCreationSheet({
+          folders: availableFolders.map(f => f.name),
+          selectedFolderIndex: defaultFolderIndex,
+        }).then((result) => {
+          if (!result.cancelled && result.taskName) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            const folderName = availableFolders[result.folderIndex ?? 0]?.name ?? defaultFolder;
+            const dueDate = result.dueDateMillis ? new Date(result.dueDateMillis).toISOString() : undefined;
+            addTask(result.taskName, folderName, dueDate);
+          }
+        });
       });
     } else {
       setIsModalVisible(true);

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  interpolate,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -27,7 +26,10 @@ interface TaskTileProps {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export const TaskTile: React.FC<TaskTileProps> = ({ task, onPress, onLongPress }) => {
+// Pre-load image to avoid loading on every render
+const STRANGER_THINGS_IMAGE = require('../../assets/demo_head.png');
+
+const TaskTileComponent: React.FC<TaskTileProps> = ({ task, onPress, onLongPress }) => {
   const {
     showFolderNames,
     selectionMode,
@@ -37,7 +39,11 @@ export const TaskTile: React.FC<TaskTileProps> = ({ task, onPress, onLongPress }
   } = useTaskStore();
 
   const isSelected = selectedTasks.has(task.id);
-  const isStrangerThings = task.name.toLowerCase().includes('stranger things');
+  // Memoize expensive string check
+  const isStrangerThings = useMemo(
+    () => task.name.toLowerCase().includes('stranger things'),
+    [task.name]
+  );
 
   const scale = useSharedValue(1);
   const checkScale = useSharedValue(task.completed ? 1 : 0);
@@ -117,7 +123,7 @@ export const TaskTile: React.FC<TaskTileProps> = ({ task, onPress, onLongPress }
       {isStrangerThings ? (
         <View style={styles.checkboxContainer}>
           <Image
-            source={require('../../assets/demo_head.png')}
+            source={STRANGER_THINGS_IMAGE}
             style={styles.strangerThingsIcon}
             resizeMode="contain"
           />
@@ -217,4 +223,17 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
     marginLeft: 10,
   },
+});
+
+// Wrap with React.memo for performance - only re-render when task props change
+export const TaskTile = memo(TaskTileComponent, (prevProps, nextProps) => {
+  // Custom comparison for better performance
+  return (
+    prevProps.task.id === nextProps.task.id &&
+    prevProps.task.name === nextProps.task.name &&
+    prevProps.task.completed === nextProps.task.completed &&
+    prevProps.task.folder === nextProps.task.folder &&
+    prevProps.onPress === nextProps.onPress &&
+    prevProps.onLongPress === nextProps.onLongPress
+  );
 });

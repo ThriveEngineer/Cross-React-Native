@@ -1,10 +1,16 @@
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { InteractionManager } from 'react-native';
 import { Task, Folder, SortOption, SyncState } from '../types/types';
 import { getCurrentTimestamp } from '../utils/dates';
 import { useMemo } from 'react';
 import { notionAutoSync } from '../services/notionService';
+
+// Helper to run storage operations after UI interactions complete
+const runAfterInteractions = (callback: () => void) => {
+  InteractionManager.runAfterInteractions(callback);
+};
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -140,7 +146,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   isLoading: false,
   isInitialized: false,
 
-  // Task Actions
+  // Task Actions - UI updates immediately, storage saves in background
   addTask: (name, folder = 'Inbox', dueDate) => {
     const newTask: Task = {
       id: generateId(),
@@ -151,7 +157,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       lastModified: getCurrentTimestamp(),
     };
     set(state => ({ tasks: [...state.tasks, newTask] }));
-    get().saveTasks();
+    runAfterInteractions(() => get().saveTasks());
   },
 
   updateTask: (id, updates) => {
@@ -162,7 +168,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
           : task
       ),
     }));
-    get().saveTasks();
+    runAfterInteractions(() => get().saveTasks());
   },
 
   deleteTask: id => {
@@ -170,7 +176,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       tasks: state.tasks.filter(task => task.id !== id),
       selectedTasks: new Set([...state.selectedTasks].filter(tid => tid !== id)),
     }));
-    get().saveTasks();
+    runAfterInteractions(() => get().saveTasks());
   },
 
   deleteTasks: ids => {
@@ -181,7 +187,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         [...state.selectedTasks].filter(tid => !idSet.has(tid))
       ),
     }));
-    get().saveTasks();
+    runAfterInteractions(() => get().saveTasks());
   },
 
   toggleTaskCompletion: id => {
@@ -211,7 +217,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         }
       }),
     }));
-    get().saveTasks();
+    runAfterInteractions(() => get().saveTasks());
   },
 
   moveTasksToFolder: (ids, folder) => {
@@ -229,7 +235,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
           : task
       ),
     }));
-    get().saveTasks();
+    runAfterInteractions(() => get().saveTasks());
   },
 
   reorderTasks: (fromIndex, toIndex) => {
@@ -239,10 +245,10 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       tasks.splice(toIndex, 0, removed);
       return { tasks };
     });
-    get().saveTasks();
+    runAfterInteractions(() => get().saveTasks());
   },
 
-  // Folder Actions
+  // Folder Actions - UI updates immediately, storage saves in background
   addFolder: (name, icon) => {
     const newFolder: Folder = {
       id: generateId(),
@@ -251,7 +257,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       isDefault: false,
     };
     set(state => ({ folders: [...state.folders, newFolder] }));
-    get().saveFolders();
+    runAfterInteractions(() => get().saveFolders());
   },
 
   updateFolder: (id, updates) => {
@@ -260,7 +266,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         folder.id === id ? { ...folder, ...updates } : folder
       ),
     }));
-    get().saveFolders();
+    runAfterInteractions(() => get().saveFolders());
   },
 
   deleteFolder: id => {
@@ -279,8 +285,10 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         [...state.selectedFolders].filter(fid => fid !== id)
       ),
     }));
-    get().saveFolders();
-    get().saveTasks();
+    runAfterInteractions(() => {
+      get().saveFolders();
+      get().saveTasks();
+    });
   },
 
   deleteFolders: ids => {
@@ -301,24 +309,31 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       ),
       selectedFolders: new Set(),
     }));
-    get().saveFolders();
-    get().saveTasks();
+    runAfterInteractions(() => {
+      get().saveFolders();
+      get().saveTasks();
+    });
   },
 
-  // Settings Actions
+  // Settings Actions - UI updates immediately, storage saves in background
   setShowCompletedInToday: value => {
     set({ showCompletedInToday: value });
-    get().saveSettings();
+    // Save to storage after UI update completes
+    runAfterInteractions(() => get().saveSettings());
   },
 
   setShowFolderNames: value => {
     set({ showFolderNames: value });
-    get().saveSettings();
+    // Save to storage after UI update completes
+    runAfterInteractions(() => get().saveSettings());
   },
 
   setSortOption: option => {
     set({ sortOption: option });
-    AsyncStorage.setItem(STORAGE_KEYS.SORT_OPTION, option);
+    // Save to storage after UI update completes
+    runAfterInteractions(() => {
+      AsyncStorage.setItem(STORAGE_KEYS.SORT_OPTION, option);
+    });
   },
 
   toggleSelectionMode: () => {
@@ -546,4 +561,41 @@ export const useFolderByName = (name: string) => {
 export const useIsNotionConnected = () =>
   useTaskStore(
     state => !!state.notionApiKey && !!state.notionDatabaseId
+  );
+
+// Optimized selector for task counts by folder - computed once per task change
+export const useTaskCountsByFolder = () => {
+  const tasks = useTaskStore(useShallow(state => state.tasks));
+  return useMemo(() => {
+    const counts = new Map<string, number>();
+    tasks.forEach(task => {
+      const count = counts.get(task.folder) || 0;
+      counts.set(task.folder, count + 1);
+    });
+    return counts;
+  }, [tasks]);
+};
+
+// Optimized selector for tasks due today
+export const useTasksDueToday = () => {
+  const { tasks, sortOption } = useTaskStore(
+    useShallow(state => ({ tasks: state.tasks, sortOption: state.sortOption }))
+  );
+  return useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return sortTasks(
+      tasks.filter(t => t.dueDate?.startsWith(today) && t.folder !== 'Completed'),
+      sortOption
+    );
+  }, [tasks, sortOption]);
+};
+
+// Stable selector for selection state - prevents re-renders when other store state changes
+export const useSelectionState = () =>
+  useTaskStore(
+    useShallow(state => ({
+      selectionMode: state.selectionMode,
+      selectedTasks: state.selectedTasks,
+      selectedFolders: state.selectedFolders,
+    }))
   );

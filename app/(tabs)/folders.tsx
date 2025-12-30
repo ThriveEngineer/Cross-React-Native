@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   Platform,
+  InteractionManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -68,7 +69,8 @@ interface FolderTileProps {
   onPress: () => void;
 }
 
-const FolderTile: React.FC<FolderTileProps> = ({
+// Memoized FolderTile to prevent unnecessary re-renders
+const FolderTile = memo<FolderTileProps>(({
   folder,
   taskCount,
   isSelected,
@@ -104,7 +106,7 @@ const FolderTile: React.FC<FolderTileProps> = ({
       )}
     </Pressable>
   );
-};
+});
 
 export default function FoldersScreen() {
   const {
@@ -124,12 +126,15 @@ export default function FoldersScreen() {
   const [selectedIcon, setSelectedIcon] = useState('folder');
   const [showIconPicker, setShowIconPicker] = useState(false);
 
-  const getTaskCountForFolder = useCallback(
-    (folderName: string) => {
-      return tasks.filter(t => t.folder === folderName).length;
-    },
-    [tasks]
-  );
+  // Pre-compute all task counts at once - O(n) instead of O(n*m)
+  const taskCountByFolder = useMemo(() => {
+    const counts = new Map<string, number>();
+    tasks.forEach(task => {
+      const count = counts.get(task.folder) || 0;
+      counts.set(task.folder, count + 1);
+    });
+    return counts;
+  }, [tasks]);
 
   const handleFolderPress = useCallback(
     (folder: Folder) => {
@@ -206,7 +211,7 @@ export default function FoldersScreen() {
           >
             <FolderTile
               folder={folder}
-              taskCount={getTaskCountForFolder(folder.name)}
+              taskCount={taskCountByFolder.get(folder.name) || 0}
               isSelected={selectedFolders.has(folder.id)}
               isSelectionMode={selectionMode}
               onPress={() => handleFolderPress(folder)}
@@ -227,14 +232,17 @@ export default function FoldersScreen() {
         // Add folder button
         <Pressable
           style={styles.fab}
-          onPress={async () => {
+          onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             if (Platform.OS === 'android') {
-              const result = await showM3FolderCreationSheet();
-              if (!result.cancelled && result.folderName) {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                addFolder(result.folderName, result.icon || 'folder');
-              }
+              // Defer native call to allow button animation to complete
+              InteractionManager.runAfterInteractions(async () => {
+                const result = await showM3FolderCreationSheet();
+                if (!result.cancelled && result.folderName) {
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  addFolder(result.folderName, result.icon || 'folder');
+                }
+              });
             } else {
               setIsCreateModalVisible(true);
             }

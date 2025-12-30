@@ -1,10 +1,10 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert, Pressable } from 'react-native';
+import { View, Text, StyleSheet, RefreshControl, Alert, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { FlashList } from '@shopify/flash-list';
 import { TaskTile } from '../../src/components/TaskTile';
 import { FloatingActionButton } from '../../src/components/FloatingActionButton';
 import { CustomAppBar } from '../../src/components/CustomAppBar';
@@ -12,7 +12,7 @@ import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
 import { MoveToFolderSheet } from '../../src/components/MoveToFolderSheet';
 import { useTaskStore, useIncompleteTasks } from '../../src/store/taskStore';
 import { notionAutoSync } from '../../src/services/notionService';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
+import { Colors, Spacing, FontSizes } from '../../src/constants/theme';
 import { Task } from '../../src/types/types';
 import { format, isToday, isTomorrow, parseISO, isValid } from 'date-fns';
 
@@ -21,6 +21,11 @@ interface DateGroup {
   date: Date | null;
   tasks: Task[];
 }
+
+// Flattened list item types for FlashList
+type ListItem =
+  | { type: 'header'; label: string }
+  | { type: 'task'; task: Task; isFirst: boolean; isLast: boolean };
 
 export default function UpcomingScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -67,10 +72,11 @@ export default function UpcomingScreen() {
     }
   }, []);
 
-  // Group tasks by date - matching Flutter's format
-  const dateGroups = useMemo((): DateGroup[] => {
+  // Group tasks by date and flatten for FlashList
+  const flatListData = useMemo((): ListItem[] => {
     const groups = new Map<string, DateGroup>();
 
+    // Group tasks by date label
     incompleteTasks.forEach(task => {
       let label = 'No Date';
       let date: Date | null = null;
@@ -85,7 +91,6 @@ export default function UpcomingScreen() {
             } else if (isTomorrow(parsedDate)) {
               label = 'Tomorrow';
             } else {
-              // Format: "Monday, January 1"
               label = format(parsedDate, 'EEEE, MMMM d');
             }
           }
@@ -116,8 +121,47 @@ export default function UpcomingScreen() {
       return 0;
     });
 
-    return sortedGroups;
+    // Flatten groups into a single array for FlashList
+    const items: ListItem[] = [];
+    sortedGroups.forEach(group => {
+      items.push({ type: 'header', label: group.label });
+      group.tasks.forEach((task, index) => {
+        items.push({
+          type: 'task',
+          task,
+          isFirst: index === 0,
+          isLast: index === group.tasks.length - 1,
+        });
+      });
+    });
+
+    return items;
   }, [incompleteTasks]);
+
+  // Render item for FlashList
+  const renderItem = useCallback(({ item }: { item: ListItem }) => {
+    if (item.type === 'header') {
+      return <Text style={styles.dateHeader}>{item.label}</Text>;
+    }
+    return (
+      <View style={[
+        styles.taskWrapper,
+        item.isFirst && styles.taskWrapperFirst,
+        item.isLast && styles.taskWrapperLast,
+      ]}>
+        <TaskTile task={item.task} />
+      </View>
+    );
+  }, []);
+
+  // Key extractor for FlashList
+  const keyExtractor = useCallback((item: ListItem) => {
+    if (item.type === 'header') return `header-${item.label}`;
+    return `task-${item.task.id}`;
+  }, []);
+
+  // Get item type for FlashList optimization
+  const getItemType = useCallback((item: ListItem) => item.type, []);
 
   const openSettings = useCallback(() => {
     router.push('/settings');
@@ -135,7 +179,7 @@ export default function UpcomingScreen() {
         <Text style={styles.title}>Upcoming</Text>
       </View>
 
-      {incompleteTasks.length === 0 ? (
+      {flatListData.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <Text style={styles.emptyTitle}>No upcoming tasks</Text>
           <Text style={styles.emptySubtitle}>
@@ -143,9 +187,13 @@ export default function UpcomingScreen() {
           </Text>
         </View>
       ) : (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+        <FlashList
+          data={flatListData}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          getItemType={getItemType}
+          estimatedItemSize={50}
+          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -154,24 +202,7 @@ export default function UpcomingScreen() {
               tintColor={Colors.light.primary}
             />
           }
-        >
-          {dateGroups.map((group, groupIndex) => (
-            <Animated.View
-              key={group.label}
-              entering={FadeInDown.delay(groupIndex * 50).duration(400)}
-            >
-              {/* Date Header */}
-              <Text style={styles.dateHeader}>{group.label}</Text>
-
-              {/* Tasks Container */}
-              <View style={styles.tasksContainer}>
-                {group.tasks.map(task => (
-                  <TaskTile key={task.id} task={task} />
-                ))}
-              </View>
-            </Animated.View>
-          ))}
-        </ScrollView>
+        />
       )}
 
       {/* FAB - always visible, changes based on selection mode */}
@@ -232,10 +263,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.light.text,
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
+  listContent: {
     paddingHorizontal: 25,
     paddingBottom: 100,
   },
@@ -244,13 +272,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.light.text,
     marginBottom: 12,
-    marginTop: 8,
+    marginTop: 16,
   },
-  tasksContainer: {
+  taskWrapper: {
     backgroundColor: '#F3F3F3',
-    borderRadius: 12,
-    paddingVertical: 8,
-    marginBottom: 16,
+  },
+  taskWrapperFirst: {
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    paddingTop: 8,
+  },
+  taskWrapperLast: {
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    paddingBottom: 8,
+    marginBottom: 8,
   },
   emptyStateContainer: {
     flex: 1,

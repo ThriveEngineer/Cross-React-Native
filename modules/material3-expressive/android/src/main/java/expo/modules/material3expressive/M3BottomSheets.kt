@@ -33,6 +33,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import android.view.ViewGroup
 import expo.modules.kotlin.Promise
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.Stable
 
 // Icon mapping from string names to Material Icons
 object IconMapper {
@@ -93,7 +94,8 @@ object IconMapper {
     }
 }
 
-// Data classes for sheet content
+// Data classes for sheet content - marked @Stable for better recomposition performance
+@Stable
 data class ListItem(
     val id: String,
     val title: String,
@@ -101,6 +103,7 @@ data class ListItem(
     val subtitle: String? = null
 )
 
+@Stable
 data class SettingsToggle(
     val id: String,
     val title: String,
@@ -108,6 +111,7 @@ data class SettingsToggle(
     val value: Boolean
 )
 
+@Stable
 data class SettingsDropdown(
     val id: String,
     val title: String,
