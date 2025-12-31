@@ -91,6 +91,52 @@ export class NotionService {
     }
   }
 
+  static async archiveTask(notionPageId: string): Promise<boolean> {
+    const { apiKey } = this.getCredentials();
+    if (!apiKey || !notionPageId) {
+      console.log('archiveTask skipped: missing apiKey or notionPageId');
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${NOTION_API_BASE}/pages/${notionPageId}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Notion-Version': NOTION_API_VERSION,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ archived: true }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Notion archive failed:', response.status, errorText);
+      }
+
+      return response.ok;
+    } catch (error) {
+      console.error('Failed to archive task in Notion:', error);
+      return false;
+    }
+  }
+
+  static async archiveTasks(notionPageIds: string[]): Promise<{ success: number; failed: number }> {
+    let success = 0;
+    let failed = 0;
+
+    for (const pageId of notionPageIds) {
+      const result = await this.archiveTask(pageId);
+      if (result) {
+        success++;
+      } else {
+        failed++;
+      }
+    }
+
+    return { success, failed };
+  }
+
   static async updateTask(task: Task): Promise<boolean> {
     const { apiKey } = this.getCredentials();
     if (!apiKey || !task.notionPageId) {
@@ -414,7 +460,7 @@ class NotionAutoSyncService {
   private static instance: NotionAutoSyncService;
   private syncInterval: ReturnType<typeof setInterval> | null = null;
   private debounceTimeout: ReturnType<typeof setTimeout> | null = null;
-  private readonly SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  private readonly SYNC_INTERVAL = 30 * 1000; // 30 seconds
   private readonly DEBOUNCE_DELAY = 1000; // 1 second
 
   private constructor() {}

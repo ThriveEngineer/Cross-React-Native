@@ -5,7 +5,7 @@ import { InteractionManager } from 'react-native';
 import { Task, Folder, SortOption, SyncState } from '../types/types';
 import { getCurrentTimestamp } from '../utils/dates';
 import { useMemo } from 'react';
-import { notionAutoSync } from '../services/notionService';
+import { notionAutoSync, NotionService } from '../services/notionService';
 
 // Helper to run storage operations after UI interactions complete
 const runAfterInteractions = (callback: () => void) => {
@@ -172,22 +172,45 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   },
 
   deleteTask: id => {
+    // Get the task before deleting to archive in Notion
+    const task = get().tasks.find(t => t.id === id);
+    const notionPageId = task?.notionPageId;
+
     set(state => ({
       tasks: state.tasks.filter(task => task.id !== id),
       selectedTasks: new Set([...state.selectedTasks].filter(tid => tid !== id)),
     }));
-    runAfterInteractions(() => get().saveTasks());
+
+    runAfterInteractions(() => {
+      get().saveTasks();
+      // Archive in Notion if task had a Notion page ID
+      if (notionPageId) {
+        NotionService.archiveTask(notionPageId);
+      }
+    });
   },
 
   deleteTasks: ids => {
     const idSet = new Set(ids);
+    // Get Notion page IDs before deleting
+    const notionPageIds = get().tasks
+      .filter(task => idSet.has(task.id) && task.notionPageId)
+      .map(task => task.notionPageId as string);
+
     set(state => ({
       tasks: state.tasks.filter(task => !idSet.has(task.id)),
       selectedTasks: new Set(
         [...state.selectedTasks].filter(tid => !idSet.has(tid))
       ),
     }));
-    runAfterInteractions(() => get().saveTasks());
+
+    runAfterInteractions(() => {
+      get().saveTasks();
+      // Archive in Notion if tasks had Notion page IDs
+      if (notionPageIds.length > 0) {
+        NotionService.archiveTasks(notionPageIds);
+      }
+    });
   },
 
   toggleTaskCompletion: id => {

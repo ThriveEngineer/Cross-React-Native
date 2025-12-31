@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, AppState, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomAppBar } from '../../src/components/CustomAppBar';
 import { FloatingActionButton } from '../../src/components/FloatingActionButton';
@@ -57,11 +57,28 @@ export default function TodayScreen() {
     );
   }, [hasSelection, selectedTaskIds, deleteTasks, clearSelection]);
 
+  const appState = useRef(AppState.currentState);
+
   useEffect(() => {
     if (!isInitialized) {
       loadAllData();
     }
   }, [isInitialized, loadAllData]);
+
+  // Sync when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        // App has come to foreground - trigger sync
+        notionAutoSync.triggerImmediateSync();
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
