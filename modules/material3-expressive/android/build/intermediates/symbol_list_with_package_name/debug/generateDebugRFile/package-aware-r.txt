@@ -1,1 +1,5 @@
 expo.modules.material3expressive
+drawable ic_category_iconsax
+drawable ic_folder_iconsax
+drawable ic_sort_iconsax
+drawable ic_tick_circle_iconsax

@@ -1,5 +1,6 @@
 package expo.modules.material3expressive
 
+import expo.modules.material3expressive.R
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,6 +35,8 @@ import android.view.ViewGroup
 import expo.modules.kotlin.Promise
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.platform.LocalContext
 
 // Icon mapping from string names to Material Icons
 object IconMapper {
@@ -42,9 +45,7 @@ object IconMapper {
         "mail" to Icons.Outlined.Email,
         "heart" to Icons.Outlined.Favorite,
         "favorite" to Icons.Outlined.Favorite,
-        "check" to Icons.Outlined.CheckCircle,
         "checkbox" to Icons.Outlined.CheckBox,
-        "folder" to Icons.Outlined.Folder,
         "star" to Icons.Outlined.Star,
         "bookmark" to Icons.Outlined.Bookmark,
         "flag" to Icons.Outlined.Flag,
@@ -85,12 +86,29 @@ object IconMapper {
         "help" to Icons.Outlined.Help,
         "warning" to Icons.Outlined.Warning,
         "error" to Icons.Outlined.Error,
-        "sort" to Icons.Outlined.Sort,
-        "grid" to Icons.Outlined.Apps,
     )
+
+    // Names that should use custom Iconsax icons
+    private val iconsaxNames = setOf("check", "folder", "sort", "grid")
 
     fun getIcon(name: String): ImageVector {
         return iconMap[name.lowercase()] ?: Icons.Outlined.Folder
+    }
+
+    fun isIconsaxIcon(name: String): Boolean {
+        return name.lowercase() in iconsaxNames
+    }
+}
+
+// Composable function to get Iconsax icons from resources
+@Composable
+fun getIconsaxIcon(name: String): ImageVector {
+    return when (name.lowercase()) {
+        "check" -> ImageVector.vectorResource(R.drawable.ic_tick_circle_iconsax)
+        "folder" -> ImageVector.vectorResource(R.drawable.ic_folder_iconsax)
+        "sort" -> ImageVector.vectorResource(R.drawable.ic_sort_iconsax)
+        "grid" -> ImageVector.vectorResource(R.drawable.ic_category_iconsax)
+        else -> Icons.Outlined.Folder
     }
 }
 
@@ -236,11 +254,18 @@ private fun SelectionSheetContent(
             modifier = Modifier.heightIn(max = 400.dp)
         ) {
             itemsIndexed(items) { index, item ->
+                val itemIconVector = item.icon?.let { iconName ->
+                    if (IconMapper.isIconsaxIcon(iconName)) {
+                        getIconsaxIcon(iconName)
+                    } else {
+                        IconMapper.getIcon(iconName)
+                    }
+                }
                 ListItem(
                     headlineContent = { Text(item.title) },
                     supportingContent = item.subtitle?.let { { Text(it) } },
-                    leadingContent = item.icon?.let {
-                        { Icon(IconMapper.getIcon(it), contentDescription = null) }
+                    leadingContent = itemIconVector?.let {
+                        { Icon(it, contentDescription = null) }
                     },
                     trailingContent = {
                         Icon(
@@ -309,7 +334,7 @@ fun showSettingsSheet(
                             ))
                             (parent as? ViewGroup)?.removeView(this@apply)
                         },
-                        containerColor = MaterialTheme.colorScheme.surface,
+                        containerColor = Color(0xFFF2F2F7), // Light gray like Flutter
                         contentColor = MaterialTheme.colorScheme.onSurface,
                         scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
                         dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -350,9 +375,9 @@ private fun SettingsSheetContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
             .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(25.dp) // Match Flutter spacing
     ) {
         // Title (only show if not empty)
         if (title.isNotEmpty()) {
@@ -369,18 +394,25 @@ private fun SettingsSheetContent(
         // Toggles card (if any toggles exist)
         if (toggles.isNotEmpty()) {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.width(353.dp), // Match Flutter width
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    containerColor = Color.White // White cards like Flutter
                 ),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(18.dp) // Match Flutter radius
             ) {
                 Column {
                     toggles.forEachIndexed { index, toggle ->
+                        val iconVector = toggle.icon?.let { iconName ->
+                            if (IconMapper.isIconsaxIcon(iconName)) {
+                                getIconsaxIcon(iconName)
+                            } else {
+                                IconMapper.getIcon(iconName)
+                            }
+                        }
                         ListItem(
                             headlineContent = { Text(toggle.title) },
-                            leadingContent = toggle.icon?.let {
-                                { Icon(IconMapper.getIcon(it), contentDescription = null) }
+                            leadingContent = iconVector?.let {
+                                { Icon(it, contentDescription = null) }
                             },
                             trailingContent = {
                                 Switch(
@@ -408,13 +440,20 @@ private fun SettingsSheetContent(
         dropdowns.forEach { dropdown ->
             var expanded by remember { mutableStateOf(false) }
             val selectedIndex = dropdownStates[dropdown.id] ?: dropdown.selectedIndex
+            val dropdownIconVector = dropdown.icon?.let { iconName ->
+                if (IconMapper.isIconsaxIcon(iconName)) {
+                    getIconsaxIcon(iconName)
+                } else {
+                    IconMapper.getIcon(iconName)
+                }
+            }
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.width(353.dp), // Match Flutter width
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    containerColor = Color.White // White cards like Flutter
                 ),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(18.dp) // Match Flutter radius
             ) {
                 ExposedDropdownMenuBox(
                     expanded = expanded,
@@ -422,8 +461,8 @@ private fun SettingsSheetContent(
                 ) {
                     ListItem(
                         headlineContent = { Text(dropdown.title) },
-                        leadingContent = dropdown.icon?.let {
-                            { Icon(IconMapper.getIcon(it), contentDescription = null) }
+                        leadingContent = dropdownIconVector?.let {
+                            { Icon(it, contentDescription = null) }
                         },
                         trailingContent = {
                             Row(

@@ -1,32 +1,34 @@
+import * as Haptics from 'expo-haptics';
+import { router, Stack } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   Pressable,
   ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, Stack } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../src/constants/theme';
-import { Icon, IconName } from '../src/components/Icon';
+import { Icon, IconName, IconVariant } from '../src/components/Icon';
+import { Colors, FontSizes, Spacing } from '../src/constants/theme';
 
 interface SettingRowProps {
   icon: IconName;
+  iconVariant?: IconVariant;
   title: string;
   subtitle?: string;
   onPress?: () => void;
-  showArrow?: boolean;
+  arrowType?: 'right' | 'down' | 'none';
   disabled?: boolean;
 }
 
 const SettingRow: React.FC<SettingRowProps> = ({
   icon,
+  iconVariant = 'Linear',
   title,
   subtitle,
   onPress,
-  showArrow = true,
+  arrowType = 'right',
   disabled = false,
 }) => (
   <Pressable
@@ -38,6 +40,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
       name={icon}
       size={22}
       color={disabled ? Colors.light.textSecondary : Colors.light.text}
+      variant={iconVariant}
     />
     <View style={styles.settingContent}>
       <Text style={[styles.settingTitle, disabled && styles.settingTitleDisabled]}>
@@ -47,9 +50,9 @@ const SettingRow: React.FC<SettingRowProps> = ({
         <Text style={styles.settingSubtitle}>{subtitle}</Text>
       )}
     </View>
-    {showArrow && (
+    {arrowType !== 'none' && (
       <Icon
-        name="chevron-forward"
+        name={arrowType === 'down' ? 'chevron-down' : 'chevron-forward'}
         size={20}
         color={Colors.light.textSecondary}
       />
@@ -86,13 +89,14 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Settings Container */}
-        <View style={styles.settingsContainer}>
+        {/* First Card - App Settings */}
+        <View style={styles.settingsCard}>
           {/* Theme */}
           <SettingRow
             icon="paintbucket"
+            iconVariant="Bold"
             title="Theme"
-            showArrow={true}
+            arrowType="down"
             onPress={handleTheme}
           />
 
@@ -101,7 +105,9 @@ export default function SettingsScreen() {
           {/* Language */}
           <SettingRow
             icon="global"
+            iconVariant="Linear"
             title="Language | Coming soon!"
+            arrowType="right"
             disabled={true}
           />
 
@@ -110,16 +116,21 @@ export default function SettingsScreen() {
           {/* Integrations */}
           <SettingRow
             icon="component"
+            iconVariant="Linear"
             title="Integrations"
+            arrowType="right"
             onPress={handleIntegrations}
           />
+        </View>
 
-          <View style={styles.divider} />
-
+        {/* Second Card - Support & Social */}
+        <View style={styles.settingsCard}>
           {/* Feedback */}
           <SettingRow
             icon="like"
+            iconVariant="Bold"
             title="Feedback"
+            arrowType="right"
           />
 
           <View style={styles.divider} />
@@ -127,7 +138,9 @@ export default function SettingsScreen() {
           {/* Follow Us */}
           <SettingRow
             icon="messages"
+            iconVariant="Bold"
             title="Follow us"
+            arrowType="right"
           />
         </View>
       </ScrollView>
@@ -157,14 +170,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: Spacing.lg,
+    paddingVertical: 25,
+    alignItems: 'center',
   },
-  settingsContainer: {
-    backgroundColor: Colors.light.surface,
+  settingsCard: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 18,
     overflow: 'hidden',
     width: 353,
-    alignSelf: 'center',
+    marginBottom: 35,
   },
   settingRow: {
     flexDirection: 'row',
@@ -194,6 +208,7 @@ const styles = StyleSheet.create({
   divider: {
     height: 0.5,
     backgroundColor: '#C2C2C2',
-    marginLeft: 50,
+    marginLeft: 20,
+    marginRight: 20,
   },
 });

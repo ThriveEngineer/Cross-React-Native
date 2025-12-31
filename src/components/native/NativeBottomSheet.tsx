@@ -98,7 +98,7 @@ const BottomSheetImpl: React.FC<NativeBottomSheetProps & { isDark: boolean }> = 
 
   const dynamicStyles = {
     sheet: {
-      backgroundColor: isDark ? '#1D1B20' : '#F3EDF7',
+      backgroundColor: isDark ? '#1D1B20' : '#F2F2F7',
     },
     dragHandle: {
       backgroundColor: isDark ? '#938F99' : '#79747E',

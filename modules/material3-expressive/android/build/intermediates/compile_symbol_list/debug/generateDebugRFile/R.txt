@@ -1,0 +1,4 @@
+int drawable ic_category_iconsax 0x0
+int drawable ic_folder_iconsax 0x0
+int drawable ic_sort_iconsax 0x0
+int drawable ic_tick_circle_iconsax 0x0

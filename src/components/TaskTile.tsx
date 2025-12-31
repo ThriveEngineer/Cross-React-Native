@@ -1,23 +1,23 @@
-import React, { useCallback, useMemo, memo } from 'react';
+import * as Haptics from 'expo-haptics';
+import { TickSquare } from 'iconsax-react-nativejs';
+import React, { memo, useCallback, useMemo } from 'react';
 import {
-  View,
-  Text,
+  Image,
   Pressable,
   StyleSheet,
-  Image,
+  Text,
+  View,
 } from 'react-native';
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
-import { Task } from '../types/types';
+import { Colors, FontSizes, Spacing } from '../constants/theme';
 import { useTaskStore } from '../store/taskStore';
-import { Colors, Spacing, BorderRadius, FontSizes } from '../constants/theme';
+import { Task } from '../types/types';
 import { Icon } from './Icon';
-import { TickCircle } from 'iconsax-react-nativejs';
 
 interface TaskTileProps {
   task: Task;
@@ -109,17 +109,6 @@ const TaskTileComponent: React.FC<TaskTileProps> = ({ task, onPress, onLongPress
         isSelected && styles.selectedContainer,
       ]}
     >
-      {/* Selection Mode Checkbox */}
-      {selectionMode && (
-        <View style={styles.selectionCheckbox}>
-          {isSelected ? (
-            <Icon name="tick-circle" size={24} color={Colors.light.primary} variant="Bold" />
-          ) : (
-            <Icon name="ellipse" size={24} color={Colors.light.textSecondary} />
-          )}
-        </View>
-      )}
-
       {/* Task Checkbox */}
       {isStrangerThings ? (
         <View style={styles.checkboxContainer}>
@@ -130,15 +119,13 @@ const TaskTileComponent: React.FC<TaskTileProps> = ({ task, onPress, onLongPress
           />
         </View>
       ) : (
-        <View
-          style={[
-            styles.checkbox,
-            task.completed && styles.checkboxChecked,
-          ]}
-        >
+        <View style={styles.checkboxContainer}>
           <Animated.View style={animatedCheckStyle}>
-            <TickCircle size={14} color="#FFFFFF" variant="Bold" />
+            <TickSquare size={22} color="#000000" variant="Bold" />
           </Animated.View>
+          {!task.completed && (
+            <View style={styles.checkbox} />
+          )}
         </View>
       )}
 
@@ -183,23 +170,15 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 20,
     height: 20,
-    borderRadius: 7,
+    borderRadius: 5,
     borderWidth: 2,
     borderColor: Colors.light.checkbox.unchecked,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'transparent',
-  },
-  checkboxChecked: {
-    backgroundColor: Colors.light.checkbox.checked,
-    borderColor: Colors.light.checkbox.checked,
-  },
-  selectionCheckbox: {
-    marginRight: Spacing.sm,
+    position: 'absolute',
   },
   checkboxContainer: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },

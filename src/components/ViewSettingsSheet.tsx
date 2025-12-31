@@ -115,8 +115,9 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
 
   return (
     <NativeBottomSheet visible={visible} onClose={onClose}>
-      {/* Toggles Card */}
-      <View style={styles.settingsCard}>
+      <View style={styles.cardsContainer}>
+        {/* Toggles Card */}
+        <View style={styles.settingsCard}>
         {/* Completed Tasks Toggle */}
         <View style={styles.settingRow}>
           <View style={styles.settingLeft}>
@@ -166,7 +167,7 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
       <View style={styles.settingsCard}>
         <View style={[styles.settingRow, styles.disabledRow]}>
           <View style={styles.settingLeft}>
-            <Icon name="category" size={22} color={Colors.light.textSecondary} />
+            <Icon name="category" size={22} color={Colors.light.textSecondary} variant="Broken" />
             <Text style={[styles.settingLabel, styles.disabledText]}>Group</Text>
           </View>
           <View style={styles.dropdownButton}>
@@ -175,16 +176,23 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
           </View>
         </View>
       </View>
+      </View>
     </NativeBottomSheet>
   );
 };
 
 const styles = StyleSheet.create({
+  cardsContainer: {
+    alignItems: 'center',
+    width: '100%',
+  },
   settingsCard: {
-    backgroundColor: '#F3F3F3',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
     overflow: 'hidden',
-    marginBottom: 12,
+    marginBottom: 25,
+    width: 353,
+    maxWidth: '100%',
   },
   settingRow: {
     flexDirection: 'row',

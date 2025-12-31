@@ -1,118 +1,103 @@
-import React from 'react';
-import { SvgProps } from 'react-native-svg';
 import {
+  Add,
+  AddCircle,
+  Airplane,
+  // Archive & Tasks
+  Archive,
+  ArrowDown,
+  ArrowDown2,
+  ArrowDown3,
   // Navigation & Arrows
   ArrowLeft,
   ArrowLeft2,
   ArrowRight,
+  ArrowRight2,
   ArrowRight3,
   ArrowUp3,
-  ArrowDown,
-  ArrowDown2,
-  // Messages & Notifications
-  DirectboxNotif,
-  // Favorites & Ratings
-  Heart,
-  Star,
-  Star1,
-  Like1,
-  // Checkmarks & Status
-  TickSquare,
-  TickCircle,
-  CloseSquare,
+  // Other
+  Autobrightness,
+  Blend,
+  Book1,
+  Bookmark2,
+  // Work & Categories
+  Briefcase,
+  // Calendar & Time
+  Calendar,
+  Calendar1,
+  Camera,
+  Car,
+  Category2,
+  Clock,
   CloseCircle,
-  // Menu & UI
-  HamburgerMenu,
-  Menu,
-  // Sync & Cloud
-  Refresh,
+  CloseSquare,
   Cloud,
   CloudChange,
   CloudCross,
+  Colorfilter,
+  Component,
+  // Messages & Notifications
+  DirectboxNotif,
+  Edit2,
+  // Additional icons for UI
+  Eye,
+  EyeSlash,
+  Flag2,
+  // Folders & Files
+  Folder,
+  FolderAdd,
+  FolderCross,
+  FolderFavorite,
+  FolderOpen,
+  Gift,
+  Global,
+  Grid1,
+  // Menu & UI
+  HamburgerMenu,
+  // Health & Fitness
+  Health,
+  // Favorites & Ratings
+  Heart,
+  Home2,
+  // Info
+  InfoCircle,
+  Lamp,
+  Like1,
+  Menu,
+  // Messages
+  Messages2,
+  Minus,
+  MinusCirlce,
+  More2,
+  // Mouse & Selection
+  MouseSquare,
+  Musicnote,
+  Note,
+  // Visual
+  Paintbucket,
+  // Sync & Cloud
+  Refresh,
   // Settings
   Setting,
   Setting3,
   Setting4,
-  // Mouse & Selection
-  MouseSquare,
-  // Calendar & Time
-  Calendar,
-  Calendar1,
-  Clock,
-  Timer1,
-  // Folders & Files
-  Folder,
-  Folder2,
-  FolderOpen,
-  FolderFavorite,
-  FolderCross,
-  FolderAdd,
-  // Archive & Tasks
-  Archive,
-  TaskSquare,
-  Note,
-  // Work & Categories
-  Briefcase,
-  Home,
-  Home2,
   ShoppingCart,
-  Book,
-  Book1,
-  // Charts & Trends
-  TrendUp,
-  // Actions
-  Trash,
-  Add,
-  AddCircle,
-  Minus,
-  MinusCirlce,
-  // Info
-  InfoCircle,
-  // Other
-  Autobrightness,
-  Global,
-  Component,
   // Sorting & Organization
   Sort,
-  Blend,
-  Category,
-  Category2,
-  Text,
-  // Visual
-  Paintbucket,
-  Colorfilter,
-  // Messages
-  Messages2,
-  // Additional icons for UI
-  Eye,
-  EyeSlash,
-  Edit,
-  Edit2,
-  More,
-  More2,
-  Grid1,
-  // Mail/Inbox
-  DirectInbox,
-  Sms,
-  // Additional folder icons
-  Bookmark,
-  Bookmark2,
-  Flag,
-  Flag2,
-  Gift,
-  Lamp,
-  Music,
-  Musicnote,
-  Camera,
-  Airplane,
-  Car,
-  // Health & Fitness
-  Health,
+  Star1,
+  TaskSquare,
   // Education
   Teacher,
-  // Checkmark
-  Check,
+  Text,
+  TickCircle,
+  // Checkmarks & Status
+  TickSquare,
+  Timer1,
+  // Actions
+  Trash,
+  // Charts & Trends
+  TrendUp
 } from 'iconsax-react-nativejs';
+import React from 'react';
 
 // Icon variant types matching iconsax-react-nativejs
 export type IconVariant = 'Linear' | 'Outline' | 'Broken' | 'Bold' | 'Bulk' | 'TwoTone';
@@ -246,7 +231,7 @@ export type IconName =
   | 'thumbs-up';
 
 // Map icon names to actual Iconsax components
-const IconMap: Record<IconName, React.FC<SvgProps & { variant?: IconVariant }>> = {
+const IconMap: Record<IconName, React.ComponentType<{ size?: number; color?: string; variant?: IconVariant; style?: any }>> = {
   // Navigation
   'arrow-left': ArrowLeft,
   'arrow-left-2': ArrowLeft2,
@@ -256,9 +241,9 @@ const IconMap: Record<IconName, React.FC<SvgProps & { variant?: IconVariant }>> 
   'arrow-down': ArrowDown,
   'arrow-down-2': ArrowDown2,
   'chevron-back': ArrowLeft2,
-  'chevron-forward': ArrowRight3,
+  'chevron-forward': ArrowRight2,
   'chevron-up': ArrowUp3,
-  'chevron-down': ArrowDown2,
+  'chevron-down': ArrowDown3,
   // Messages & Notifications
   'directbox-notif': DirectboxNotif,
   'inbox': DirectboxNotif,
@@ -292,7 +277,7 @@ const IconMap: Record<IconName, React.FC<SvgProps & { variant?: IconVariant }>> 
   // Mouse & Selection
   'mouse-square': MouseSquare,
   'checkbox': TickSquare,
-  'ellipse': CloseCircle,
+  'ellipse': TickCircle,
   // Calendar & Time
   'calendar': Calendar,
   'calendar-1': Calendar1,
