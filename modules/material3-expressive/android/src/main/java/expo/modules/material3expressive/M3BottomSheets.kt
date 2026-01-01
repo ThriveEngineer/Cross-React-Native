@@ -307,7 +307,8 @@ fun showSettingsSheet(
     title: String,
     toggles: List<SettingsToggle>,
     dropdowns: List<SettingsDropdown>,
-    promise: Promise
+    promise: Promise,
+    onSettingsChange: ((Map<String, Any?>) -> Unit)? = null
 ) {
     val sheetVisible = mutableStateOf(true)
     val toggleStates = mutableStateMapOf<String, Boolean>().apply {
@@ -345,8 +346,24 @@ fun showSettingsSheet(
                             toggleStates = toggleStates,
                             dropdowns = dropdowns,
                             dropdownStates = dropdownStates,
-                            onToggleChange = { id, value -> toggleStates[id] = value },
-                            onDropdownChange = { id, index -> dropdownStates[id] = index }
+                            onToggleChange = { id, value ->
+                                toggleStates[id] = value
+                                // Emit real-time event to React Native
+                                onSettingsChange?.invoke(mapOf(
+                                    "type" to "toggle",
+                                    "id" to id,
+                                    "value" to value
+                                ))
+                            },
+                            onDropdownChange = { id, index ->
+                                dropdownStates[id] = index
+                                // Emit real-time event to React Native
+                                onSettingsChange?.invoke(mapOf(
+                                    "type" to "dropdown",
+                                    "id" to id,
+                                    "value" to index
+                                ))
+                            }
                         )
                     }
                 }

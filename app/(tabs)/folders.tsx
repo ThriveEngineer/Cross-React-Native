@@ -1,27 +1,28 @@
-import React, { useCallback, useState, useMemo, memo } from 'react';
+import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
+import { TickSquare } from 'iconsax-react-nativejs';
+import { showM3FolderCreationSheet } from 'material3-expressive';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
+  Alert,
+  InteractionManager,
+  Modal,
+  Platform,
   Pressable,
   ScrollView,
-  Modal,
+  StyleSheet,
+  Text,
   TextInput,
-  Alert,
-  Platform,
-  InteractionManager,
+  View,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import Animated, { FadeIn, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { useTaskStore } from '../../src/store/taskStore';
 import { CustomAppBar } from '../../src/components/CustomAppBar';
+import { AVAILABLE_FOLDER_ICONS, FOLDER_ICON_MAP, Icon, IconName } from '../../src/components/Icon';
 import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
+import { Colors, FontSizes, Spacing } from '../../src/constants/theme';
+import { useTaskStore } from '../../src/store/taskStore';
 import { Folder } from '../../src/types/types';
-import { showM3FolderCreationSheet } from 'material3-expressive';
-import { Icon, FOLDER_ICON_MAP, AVAILABLE_FOLDER_ICONS, IconName } from '../../src/components/Icon';
 
 interface FolderTileProps {
   folder: Folder;
@@ -50,13 +51,13 @@ const FolderTile = memo<FolderTileProps>(({
       onPress={onPress}
     >
       {isSelectionMode && (
-        <View style={styles.selectionCheckbox}>
+        <View style={styles.checkboxContainer}>
           {folder.isDefault ? (
-            <Icon name="lock-closed" size={24} color={Colors.light.textSecondary} />
+            <Icon name="lock-closed" size={22} color={Colors.light.textSecondary} />
           ) : isSelected ? (
-            <Icon name="tick-circle" size={24} color={Colors.light.primary} variant="Bold" />
+            <TickSquare size={22} color="#000000" variant="Bold" />
           ) : (
-            <Icon name="ellipse" size={24} color={Colors.light.textSecondary} />
+            <View style={styles.checkbox} />
           )}
         </View>
       )}
@@ -186,7 +187,7 @@ export default function FoldersScreen() {
       {selectionMode ? (
         // Delete button when in selection mode
         selectedFolders.size > 0 && (
-          <Pressable style={styles.deleteFab} onPress={handleDeleteSelected}>
+          <Pressable style={styles.fab} onPress={handleDeleteSelected}>
             <Icon name="trash" size={24} color="#FFFFFF" />
           </Pressable>
         )
@@ -340,12 +341,21 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   folderTileSelected: {
-    backgroundColor: 'rgba(29, 29, 29, 0.1)',
-    borderWidth: 2,
-    borderColor: Colors.light.primary,
+    backgroundColor: 'rgba(29, 29, 29, 0.2)',
   },
-  selectionCheckbox: {
-    marginRight: 4,
+  checkboxContainer: {
+    width: 22,
+    height: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: Colors.light.checkbox.unchecked,
+    backgroundColor: 'transparent',
   },
   folderName: {
     fontSize: 14,

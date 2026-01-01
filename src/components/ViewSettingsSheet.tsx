@@ -12,7 +12,7 @@ import { useTaskStore } from '../store/taskStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { SortOption } from '../types/types';
 import { NativeSwitch, NativeBottomSheet, NativeDropdown } from './native';
-import { showM3SettingsSheet } from 'material3-expressive';
+import { showM3SettingsSheet, addSettingsChangeListener, SettingsChangeEvent } from 'material3-expressive';
 import { Icon, IconName } from './Icon';
 
 interface ViewSettingsSheetProps {
@@ -50,6 +50,31 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
     }))
   );
 
+  // Listen for real-time settings changes from native sheet
+  useEffect(() => {
+    if (visible && Platform.OS === 'android') {
+      const subscription = addSettingsChangeListener((event: SettingsChangeEvent) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+        if (event.type === 'toggle') {
+          if (event.id === 'completed') {
+            setShowCompletedInToday(event.value as boolean);
+          } else if (event.id === 'folders') {
+            setShowFolderNames(event.value as boolean);
+          }
+        } else if (event.type === 'dropdown') {
+          if (event.id === 'sort') {
+            setSortOption(SORT_OPTIONS[event.value as number].value);
+          }
+        }
+      });
+
+      return () => {
+        subscription?.remove();
+      };
+    }
+  }, [visible, setShowCompletedInToday, setShowFolderNames, setSortOption]);
+
   // Use native Android sheet - defer to allow animations to complete first
   useEffect(() => {
     if (visible && Platform.OS === 'android') {
@@ -67,21 +92,8 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
             { id: 'sort', title: 'Sort', icon: 'sort', options: SORT_OPTIONS.map(o => o.label), selectedIndex: currentSortIndex >= 0 ? currentSortIndex : 0 },
             { id: 'group', title: 'Group', icon: 'grid', options: ['None'], selectedIndex: 0 },
           ],
-        }).then((result) => {
-          if (!result.cancelled) {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            if (result.toggles) {
-              if (result.toggles.completed !== undefined) {
-                setShowCompletedInToday(result.toggles.completed);
-              }
-              if (result.toggles.folders !== undefined) {
-                setShowFolderNames(result.toggles.folders);
-              }
-            }
-            if (result.dropdowns?.sort !== undefined) {
-              setSortOption(SORT_OPTIONS[result.dropdowns.sort].value);
-            }
-          }
+        }).then(() => {
+          // Sheet was dismissed - just close, state was already updated in real-time
           onClose();
         });
       });

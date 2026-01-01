@@ -1,4 +1,5 @@
 import { requireNativeView, requireNativeModule } from 'expo';
+import { EventEmitter, Subscription } from 'expo-modules-core';
 import * as React from 'react';
 import { ViewProps, Platform, View, StyleSheet, NativeSyntheticEvent } from 'react-native';
 
@@ -6,6 +7,28 @@ import { ViewProps, Platform, View, StyleSheet, NativeSyntheticEvent } from 'rea
 const Material3ExpressiveModule = Platform.OS === 'android'
   ? requireNativeModule('Material3Expressive')
   : null;
+
+// Event emitter for receiving real-time settings changes
+const emitter = Material3ExpressiveModule ? new EventEmitter(Material3ExpressiveModule) : null;
+
+// ============ SETTINGS CHANGE EVENT ============
+export interface SettingsChangeEvent {
+  type: 'toggle' | 'dropdown';
+  id: string;
+  value: boolean | number;
+}
+
+/**
+ * Subscribe to real-time settings changes from the native bottom sheet.
+ * Call this to receive updates as the user toggles switches or changes dropdowns.
+ * Returns a subscription that should be removed when no longer needed.
+ */
+export function addSettingsChangeListener(
+  listener: (event: SettingsChangeEvent) => void
+): Subscription | null {
+  if (!emitter) return null;
+  return emitter.addListener('onSettingsChange', listener);
+}
 
 // ============ DATE PICKER FUNCTION ============
 export interface ShowDatePickerOptions {

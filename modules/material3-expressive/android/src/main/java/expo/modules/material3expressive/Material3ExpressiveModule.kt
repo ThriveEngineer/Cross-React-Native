@@ -29,6 +29,9 @@ class Material3ExpressiveModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("Material3Expressive")
 
+        // Event for real-time settings changes
+        Events("onSettingsChange")
+
         // Pre-warm Compose infrastructure on module load for faster first sheet
         OnCreate {
             val activity = appContext.currentActivity as? ComponentActivity
@@ -114,8 +117,13 @@ class Material3ExpressiveModule : Module() {
                 )
             }
 
+            // Callback to emit events when settings change in real-time
+            val onSettingsChange: (Map<String, Any?>) -> Unit = { changeData ->
+                this@Material3ExpressiveModule.sendEvent("onSettingsChange", changeData)
+            }
+
             activity.runOnUiThread {
-                showSettingsSheet(activity, title, toggles, dropdowns, promise)
+                showSettingsSheet(activity, title, toggles, dropdowns, promise, onSettingsChange)
             }
         }
 
