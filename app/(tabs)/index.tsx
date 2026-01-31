@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, AppState, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, AppState, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomAppBar } from '../../src/components/CustomAppBar';
 import { FloatingActionButton } from '../../src/components/FloatingActionButton';
@@ -110,6 +110,7 @@ export default function TodayScreen() {
         <CustomAppBar
           onOpenViewSettings={() => setViewSettingsVisible(true)}
           onOpenSettings={openSettings}
+          showAddButton={Platform.OS === 'ios'}
         />
 
         {/* Header Row */}
@@ -172,8 +173,8 @@ export default function TodayScreen() {
           </View>
         </ScrollView>
 
-        {/* FAB - always visible, changes based on selection mode */}
-        <FloatingActionButton />
+        {/* FAB - only on Android (iOS uses navbar button) */}
+        {Platform.OS === 'android' && <FloatingActionButton />}
 
         {/* Selection Mode Action Buttons */}
         {selectionMode && (
@@ -246,6 +247,7 @@ export default function TodayScreen() {
       <CustomAppBar
         onOpenViewSettings={() => setViewSettingsVisible(true)}
         onOpenSettings={openSettings}
+        showAddButton={Platform.OS === 'ios'}
       />
 
       {/* Header Row */}
@@ -274,8 +276,8 @@ export default function TodayScreen() {
         />
       )}
 
-      {/* FAB - always visible, changes based on selection mode */}
-      <FloatingActionButton />
+      {/* FAB - only on Android (iOS uses navbar button) */}
+      {Platform.OS === 'android' && <FloatingActionButton />}
 
       {/* Selection Mode Action Buttons */}
       {selectionMode && (
@@ -403,8 +405,8 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
   },
   sectionContainer: {
-    backgroundColor: '#F3F3F3',
-    borderRadius: 12,
+    backgroundColor: '#F4F4F4',
+    borderRadius: 24,
     paddingVertical: 8,
     marginBottom: 16,
   },

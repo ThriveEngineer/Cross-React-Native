@@ -6,12 +6,14 @@ import {
   StyleSheet,
   Alert,
   Platform,
+  InteractionManager,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTaskStore, useIsNotionConnected } from '../store/taskStore';
 import { Colors, Spacing, FontSizes } from '../constants/theme';
 import { NativeContextMenu, MenuOption } from './native';
 import { Icon, IconName } from './Icon';
+import { showM3TaskCreationSheet, isNativeSheetsAvailable } from 'material3-expressive';
 
 // Try to import GlassView for Liquid Glass effect
 let GlassView: any = null;
@@ -28,6 +30,9 @@ try {
 interface CustomAppBarProps {
   onOpenViewSettings: () => void;
   onOpenSettings: () => void;
+  showAddButton?: boolean;
+  defaultFolder?: string;
+  onOpenAddModal?: () => void;
 }
 
 // Glass icon wrapper component
@@ -53,15 +58,45 @@ const GlassIconWrapper: React.FC<{ children: React.ReactNode }> = ({ children })
 export const CustomAppBar: React.FC<CustomAppBarProps> = ({
   onOpenViewSettings,
   onOpenSettings,
+  showAddButton = false,
+  defaultFolder = 'Inbox',
+  onOpenAddModal,
 }) => {
   const {
     selectionMode,
     toggleSelectionMode,
     selectAllTasks,
     clearSelection,
+    folders,
+    addTask,
   } = useTaskStore();
   const isNotionConnected = useIsNotionConnected();
   const { syncState } = useTaskStore();
+
+  const availableFolders = folders.filter(f => f.name !== 'Completed');
+  const defaultFolderIndex = Math.max(0, availableFolders.findIndex(f => f.name === defaultFolder));
+
+  const handleAddPress = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    if (Platform.OS === 'ios' && isNativeSheetsAvailable) {
+      InteractionManager.runAfterInteractions(() => {
+        showM3TaskCreationSheet({
+          folders: availableFolders.map(f => f.name),
+          selectedFolderIndex: defaultFolderIndex,
+        }).then((result) => {
+          if (!result.cancelled && result.taskName) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            const folderName = availableFolders[result.folderIndex ?? 0]?.name ?? defaultFolder;
+            const dueDate = result.dueDateMillis ? new Date(result.dueDateMillis).toISOString() : undefined;
+            addTask(result.taskName, folderName, dueDate);
+          }
+        });
+      });
+    } else if (onOpenAddModal) {
+      onOpenAddModal();
+    }
+  }, [availableFolders, defaultFolderIndex, defaultFolder, addTask, onOpenAddModal]);
 
   const handleSelectAll = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -182,6 +217,13 @@ export const CustomAppBar: React.FC<CustomAppBarProps> = ({
             <Icon name="menu" size={24} color={Colors.light.text} />
           </GlassIconWrapper>
         </NativeContextMenu>
+        {showAddButton && !selectionMode && (
+          <Pressable onPress={handleAddPress}>
+            <GlassIconWrapper>
+              <Icon name="add" size={24} color={Colors.light.text} />
+            </GlassIconWrapper>
+          </Pressable>
+        )}
       </View>
     </View>
   );

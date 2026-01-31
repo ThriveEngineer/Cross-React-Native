@@ -117,7 +117,7 @@ struct DatePickerSheet: View {
                     Button("Done") {
                         onSelect(selectedDate)
                     }
-                    .fontWeight(.semibold)
+                    .font(.body.bold())
                 }
             }
         }
@@ -305,7 +305,7 @@ struct SettingsSheet: View {
                     Button("Done") {
                         onDismiss(toggleStates, dropdownStates)
                     }
-                    .fontWeight(.semibold)
+                    .font(.body.bold())
                 }
             }
         }
@@ -368,7 +368,7 @@ struct TaskCreationSheet: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 16) {
-                // Task name input
+                // Task name input row with checkmark in same row
                 HStack(spacing: 12) {
                     TextField("Task title", text: $taskName)
                         .textFieldStyle(.plain)
@@ -381,7 +381,7 @@ struct TaskCreationSheet: View {
 
                     Button(action: submitIfValid) {
                         Image(systemName: "checkmark")
-                            .fontWeight(.semibold)
+                            .font(.body.bold())
                             .foregroundColor(taskName.trimmingCharacters(in: .whitespaces).isEmpty ? .secondary : .white)
                             .frame(width: 36, height: 36)
                             .background(taskName.trimmingCharacters(in: .whitespaces).isEmpty ? Color(.systemGray5) : Color.accentColor)
@@ -391,7 +391,7 @@ struct TaskCreationSheet: View {
                 }
                 .padding(.horizontal)
 
-                // Folder and date chips
+                // Folder and date chips - under task name with grey outline and white background
                 HStack(spacing: 8) {
                     // Folder picker
                     Menu {
@@ -416,8 +416,12 @@ struct TaskCreationSheet: View {
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color.accentColor.opacity(0.15))
-                        .foregroundColor(.accentColor)
+                        .background(Color.white)
+                        .foregroundColor(.primary)
+                        .overlay(
+                            Capsule()
+                                .stroke(Color(.systemGray4), lineWidth: 1)
+                        )
                         .clipShape(Capsule())
                     }
 
@@ -433,8 +437,12 @@ struct TaskCreationSheet: View {
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(hasSelectedDate ? Color.accentColor.opacity(0.15) : Color(.systemGray5))
+                        .background(Color.white)
                         .foregroundColor(hasSelectedDate ? .accentColor : .primary)
+                        .overlay(
+                            Capsule()
+                                .stroke(Color(.systemGray4), lineWidth: 1)
+                        )
                         .clipShape(Capsule())
                     }
 
@@ -475,6 +483,7 @@ struct TaskCreationSheet: View {
                 }
             }
         }
+        .liquidGlassBackground()
     }
 
     private func submitIfValid() {
@@ -533,7 +542,7 @@ struct FolderCreationSheet: View {
 
                     Button(action: submitIfValid) {
                         Image(systemName: "checkmark")
-                            .fontWeight(.semibold)
+                            .font(.body.bold())
                             .foregroundColor(folderName.trimmingCharacters(in: .whitespaces).isEmpty ? .secondary : .white)
                             .frame(width: 36, height: 36)
                             .background(folderName.trimmingCharacters(in: .whitespaces).isEmpty ? Color(.systemGray5) : Color.accentColor)
@@ -586,6 +595,7 @@ struct FolderCreationSheet: View {
                 }
             }
         }
+        .liquidGlassBackground()
     }
 
     private func submitIfValid() {
@@ -600,5 +610,18 @@ struct FolderCreationSheet: View {
 extension Array {
     subscript(safe index: Index) -> Element? {
         return indices.contains(index) ? self[index] : nil
+    }
+}
+
+// MARK: - Liquid Glass Background Modifier
+
+extension View {
+    @ViewBuilder
+    func liquidGlassBackground() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(.regular)
+        } else {
+            self.background(.ultraThinMaterial)
+        }
     }
 }

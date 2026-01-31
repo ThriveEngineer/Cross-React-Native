@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, RefreshControl, Alert, Pressable } from 'react-native';
+import { View, Text, StyleSheet, RefreshControl, Alert, Pressable, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -172,6 +172,7 @@ export default function UpcomingScreen() {
       <CustomAppBar
         onOpenViewSettings={() => setViewSettingsVisible(true)}
         onOpenSettings={openSettings}
+        showAddButton={Platform.OS === 'ios'}
       />
 
       {/* Header */}
@@ -204,8 +205,8 @@ export default function UpcomingScreen() {
         />
       )}
 
-      {/* FAB - always visible, changes based on selection mode */}
-      <FloatingActionButton />
+      {/* FAB - only on Android (iOS uses navbar button) */}
+      {Platform.OS === 'android' && <FloatingActionButton />}
 
       {/* Selection Mode Action Buttons */}
       {selectionMode && (

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TextInput,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -20,6 +21,18 @@ import { NativeDropdown, NativeBottomSheet } from './native';
 import { Icon } from './Icon';
 import { format } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
+
+// Try to import GlassView for Liquid Glass effect
+let GlassView: any = null;
+let isLiquidGlassAvailable: () => boolean = () => false;
+
+try {
+  const glassModule = require('expo-glass-effect');
+  GlassView = glassModule.GlassView;
+  isLiquidGlassAvailable = glassModule.isLiquidGlassAvailable;
+} catch (e) {
+  // Glass effect not available
+}
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -103,24 +116,47 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
     return null;
   }
 
+  const useGlass = Platform.OS === 'ios' && GlassView && isLiquidGlassAvailable();
+
+  const renderFabContent = () => (
+    <Icon
+      name="add"
+      size={28}
+      color={useGlass ? Colors.light.text : "#FFFFFF"}
+    />
+  );
+
   return (
     <>
-      <AnimatedPressable
-        onPress={handlePress}
-        onPressIn={() => {
-          scale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
-        }}
-        onPressOut={() => {
-          scale.value = withSpring(1, { damping: 15, stiffness: 300 });
-        }}
-        style={[styles.fab, animatedStyle]}
-      >
-        <Icon
-          name="add"
-          size={28}
-          color="#FFFFFF"
-        />
-      </AnimatedPressable>
+      {useGlass ? (
+        <AnimatedPressable
+          onPress={handlePress}
+          onPressIn={() => {
+            scale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
+          }}
+          onPressOut={() => {
+            scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+          }}
+          style={[styles.fabContainer, animatedStyle]}
+        >
+          <GlassView style={styles.glassFab} glassEffectStyle="regular">
+            {renderFabContent()}
+          </GlassView>
+        </AnimatedPressable>
+      ) : (
+        <AnimatedPressable
+          onPress={handlePress}
+          onPressIn={() => {
+            scale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
+          }}
+          onPressOut={() => {
+            scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+          }}
+          style={[styles.fab, animatedStyle]}
+        >
+          {renderFabContent()}
+        </AnimatedPressable>
+      )}
 
       {/* Fallback modal when native sheets aren't available */}
       {!isNativeSheetsAvailable && (
@@ -194,13 +230,25 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
+  fabContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 20,
+  },
+  glassFab: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   fab: {
     position: 'absolute',
-    bottom: 16,
+    top: 0,
     right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.light.primary,
     justifyContent: 'center',
     alignItems: 'center',

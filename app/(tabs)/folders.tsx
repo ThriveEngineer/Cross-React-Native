@@ -7,6 +7,7 @@ import {
   Alert,
   InteractionManager,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,6 +23,18 @@ import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
 import { Colors, Spacing, FontSizes } from '../../src/constants/theme';
 import { useTaskStore } from '../../src/store/taskStore';
 import { Folder } from '../../src/types/types';
+
+// Try to import GlassView for Liquid Glass effect
+let GlassView: any = null;
+let isLiquidGlassAvailable: () => boolean = () => false;
+
+try {
+  const glassModule = require('expo-glass-effect');
+  GlassView = glassModule.GlassView;
+  isLiquidGlassAvailable = glassModule.isLiquidGlassAvailable;
+} catch (e) {
+  // Glass effect not available
+}
 
 interface FolderTileProps {
   folder: Folder;
@@ -191,28 +204,50 @@ export default function FoldersScreen() {
           </Pressable>
         )
       ) : (
-        // Add folder button
-        <Pressable
-          style={styles.fab}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            if (isNativeSheetsAvailable) {
-              // Defer native call to allow button animation to complete
-              InteractionManager.runAfterInteractions(async () => {
-                const result = await showM3FolderCreationSheet();
-                if (!result.cancelled && result.folderName) {
-                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                  addFolder(result.folderName, result.icon || 'folder');
-                }
-              });
-            } else {
-              // Fallback to React Native modal
-              setIsCreateModalVisible(true);
-            }
-          }}
-        >
-          <Icon name="folder-add" size={24} color="#FFFFFF" />
-        </Pressable>
+        // Add folder button with liquid glass on iOS
+        Platform.OS === 'ios' && GlassView && isLiquidGlassAvailable() ? (
+          <Pressable
+            style={styles.glassFabContainer}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              if (isNativeSheetsAvailable) {
+                InteractionManager.runAfterInteractions(async () => {
+                  const result = await showM3FolderCreationSheet();
+                  if (!result.cancelled && result.folderName) {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    addFolder(result.folderName, result.icon || 'folder');
+                  }
+                });
+              } else {
+                setIsCreateModalVisible(true);
+              }
+            }}
+          >
+            <GlassView style={styles.glassFab} glassEffectStyle="regular">
+              <Icon name="folder-add" size={24} color={Colors.light.text} />
+            </GlassView>
+          </Pressable>
+        ) : (
+          <Pressable
+            style={styles.fab}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              if (isNativeSheetsAvailable) {
+                InteractionManager.runAfterInteractions(async () => {
+                  const result = await showM3FolderCreationSheet();
+                  if (!result.cancelled && result.folderName) {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    addFolder(result.folderName, result.icon || 'folder');
+                  }
+                });
+              } else {
+                setIsCreateModalVisible(true);
+              }
+            }}
+          >
+            <Icon name="folder-add" size={24} color="#FFFFFF" />
+          </Pressable>
+        )
       )}
 
       {/* Fallback Create Folder Modal when native sheets aren't available */}
@@ -333,11 +368,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F3F3F3',
+    width: 353,
+    height: 44,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 16,
     marginBottom: 8,
     gap: 12,
+    alignSelf: 'center',
   },
   folderTileSelected: {
     backgroundColor: 'rgba(29, 29, 29, 0.2)',
@@ -378,6 +415,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 8,
+  },
+  glassFabContainer: {
+    position: 'absolute',
+    bottom: 16,
+    right: 20,
+  },
+  glassFab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,
