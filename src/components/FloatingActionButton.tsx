@@ -5,7 +5,6 @@ import {
   Pressable,
   StyleSheet,
   TextInput,
-  Platform,
   InteractionManager,
 } from 'react-native';
 import Animated, {
@@ -14,13 +13,13 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTaskStore } from '../store/taskStore';
 import { Colors, Spacing, FontSizes } from '../constants/theme';
-import { format } from 'date-fns';
-import { showM3DatePicker, showM3TaskCreationSheet } from 'material3-expressive';
+import { showM3TaskCreationSheet, isNativeSheetsAvailable } from 'material3-expressive';
 import { NativeDropdown, NativeBottomSheet } from './native';
 import { Icon } from './Icon';
+import { format } from 'date-fns';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -46,8 +45,9 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   // Open task creation (only in normal mode, FAB is hidden in selection mode)
   const handlePress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // On Android, use native sheet - defer to allow button animation to complete
-    if (Platform.OS === 'android') {
+
+    // Use native sheet if available, otherwise use fallback modal
+    if (isNativeSheetsAvailable) {
       InteractionManager.runAfterInteractions(() => {
         showM3TaskCreationSheet({
           folders: availableFolders.map(f => f.name),
@@ -62,6 +62,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
         });
       });
     } else {
+      // Fallback to React Native modal
       setIsModalVisible(true);
     }
   }, [availableFolders, defaultFolderIndex, defaultFolder, addTask]);
@@ -91,7 +92,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   }));
 
   const handleDateChange = (_event: unknown, date?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
+    setShowDatePicker(false);
     if (date) {
       setSelectedDate(date);
     }
@@ -104,7 +105,6 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
 
   return (
     <>
-      {/* Main FAB - only shown in normal mode */}
       <AnimatedPressable
         onPress={handlePress}
         onPressIn={() => {
@@ -122,8 +122,8 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
         />
       </AnimatedPressable>
 
-      {/* Task Creation Bottom Sheet - iOS only */}
-      {Platform.OS !== 'android' && (
+      {/* Fallback modal when native sheets aren't available */}
+      {!isNativeSheetsAvailable && (
         <NativeBottomSheet visible={isModalVisible} onClose={handleClose}>
           <View style={styles.createForm}>
             <TextInput
@@ -137,7 +137,6 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
               onSubmitEditing={handleCreate}
             />
 
-            {/* Folder selector - Native Dropdown */}
             <NativeDropdown
               options={availableFolders.map(f => f.name)}
               selectedIndex={Math.max(0, availableFolders.findIndex(f => f.name === selectedFolder))}
@@ -146,27 +145,9 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
               }}
             />
 
-            {/* Date selector chip */}
             <Pressable
               style={styles.selectorChip}
-              onPress={async () => {
-                if (Platform.OS === 'android') {
-                  try {
-                    const result = await showM3DatePicker({
-                      selectedDate: selectedDate?.getTime(),
-                      title: 'Select due date',
-                    });
-                    if (!result.cancelled && result.dateMillis) {
-                      setSelectedDate(new Date(result.dateMillis));
-                    }
-                  } catch (error) {
-                    // M3 date picker not available, fall back to standard picker
-                    setShowDatePicker(true);
-                  }
-                } else {
-                  setShowDatePicker(!showDatePicker);
-                }
-              }}
+              onPress={() => setShowDatePicker(!showDatePicker)}
             >
               <Icon name="calendar" size={18} color={Colors.light.textSecondary} />
               <Text style={styles.selectorChipText}>
@@ -185,7 +166,6 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
               )}
             </Pressable>
 
-            {/* Create button */}
             <Pressable
               style={[
                 styles.tickButton,
@@ -198,12 +178,11 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
             </Pressable>
           </View>
 
-          {/* Date picker fallback (iOS always, Android when M3 not available) */}
           {showDatePicker && (
             <DateTimePicker
               value={selectedDate || new Date()}
               mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              display="spinner"
               onChange={handleDateChange}
               minimumDate={new Date()}
             />

@@ -4,12 +4,22 @@ import * as React from 'react';
 import { ViewProps, Platform, View, StyleSheet, NativeSyntheticEvent } from 'react-native';
 
 // Native Module for function-based APIs
-const Material3ExpressiveModule = Platform.OS === 'android'
-  ? requireNativeModule('Material3Expressive')
-  : null;
+// Wrapped in try-catch to handle cases where native module isn't compiled (e.g., Expo Go, or iOS without Mac build)
+let Material3ExpressiveModule: any = null;
+try {
+  if (Platform.OS === 'android' || Platform.OS === 'ios') {
+    Material3ExpressiveModule = requireNativeModule('Material3Expressive');
+  }
+} catch (e) {
+  // Native module not available - will use fallbacks
+  console.warn('Material3Expressive native module not available. Native sheets will be disabled.');
+}
 
 // Event emitter for receiving real-time settings changes
 const emitter = Material3ExpressiveModule ? new EventEmitter(Material3ExpressiveModule) : null;
+
+// Export to check if native sheets are available
+export const isNativeSheetsAvailable = Material3ExpressiveModule !== null;
 
 // ============ SETTINGS CHANGE EVENT ============
 export interface SettingsChangeEvent {
@@ -42,7 +52,7 @@ export interface DatePickerResult {
 }
 
 export async function showM3DatePicker(options: ShowDatePickerOptions = {}): Promise<DatePickerResult> {
-  if (Platform.OS !== 'android' || !Material3ExpressiveModule) {
+  if (!Material3ExpressiveModule) {
     return { cancelled: true };
   }
 
@@ -71,12 +81,12 @@ export interface SelectionSheetResult {
 }
 
 /**
- * Shows a native Material 3 bottom sheet with a list of items to select from.
+ * Shows a native bottom sheet with a list of items to select from.
  * On Android uses Jetpack Compose ModalBottomSheet.
- * Falls back to returning cancelled on iOS (use NativeBottomSheet there).
+ * On iOS uses UISheetPresentationController with native SwiftUI views.
  */
 export async function showM3SelectionSheet(options: ShowSelectionSheetOptions): Promise<SelectionSheetResult> {
-  if (Platform.OS !== 'android' || !Material3ExpressiveModule) {
+  if (!Material3ExpressiveModule) {
     return { cancelled: true };
   }
 
@@ -112,12 +122,12 @@ export interface SettingsSheetResult {
 }
 
 /**
- * Shows a native Material 3 bottom sheet with settings controls (toggles and dropdowns).
+ * Shows a native bottom sheet with settings controls (toggles and dropdowns).
  * On Android uses Jetpack Compose ModalBottomSheet with native Switch and ExposedDropdownMenu.
- * Falls back to returning cancelled on iOS (use NativeBottomSheet there).
+ * On iOS uses UISheetPresentationController with native SwiftUI Toggle and Picker.
  */
 export async function showM3SettingsSheet(options: ShowSettingsSheetOptions): Promise<SettingsSheetResult> {
-  if (Platform.OS !== 'android' || !Material3ExpressiveModule) {
+  if (!Material3ExpressiveModule) {
     return { cancelled: true };
   }
 
@@ -142,13 +152,13 @@ export interface TaskCreationSheetResult {
 }
 
 /**
- * Shows a native Material 3 bottom sheet for task creation.
+ * Shows a native bottom sheet for task creation.
  * Includes a text input, folder dropdown, and date picker.
  * On Android uses Jetpack Compose ModalBottomSheet with native controls.
- * Falls back to returning cancelled on iOS (use NativeBottomSheet there).
+ * On iOS uses UISheetPresentationController with native SwiftUI views.
  */
 export async function showM3TaskCreationSheet(options: ShowTaskCreationSheetOptions): Promise<TaskCreationSheetResult> {
-  if (Platform.OS !== 'android' || !Material3ExpressiveModule) {
+  if (!Material3ExpressiveModule) {
     return { cancelled: true };
   }
 
@@ -166,11 +176,13 @@ export interface FolderCreationSheetResult {
 }
 
 /**
- * Shows a native Material 3 bottom sheet for folder creation.
+ * Shows a native bottom sheet for folder creation.
  * Simple input with folder icon and submit button.
+ * On Android uses Jetpack Compose ModalBottomSheet.
+ * On iOS uses UISheetPresentationController with native SwiftUI views.
  */
 export async function showM3FolderCreationSheet(): Promise<FolderCreationSheetResult> {
-  if (Platform.OS !== 'android' || !Material3ExpressiveModule) {
+  if (!Material3ExpressiveModule) {
     return { cancelled: true };
   }
 

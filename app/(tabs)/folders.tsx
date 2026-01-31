@@ -1,13 +1,12 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { TickSquare } from 'iconsax-react-nativejs';
-import { showM3FolderCreationSheet } from 'material3-expressive';
+import { showM3FolderCreationSheet, isNativeSheetsAvailable } from 'material3-expressive';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   InteractionManager,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomAppBar } from '../../src/components/CustomAppBar';
 import { AVAILABLE_FOLDER_ICONS, FOLDER_ICON_MAP, Icon, IconName } from '../../src/components/Icon';
 import { ViewSettingsSheet } from '../../src/components/ViewSettingsSheet';
-import { Colors, FontSizes, Spacing } from '../../src/constants/theme';
+import { Colors, Spacing, FontSizes } from '../../src/constants/theme';
 import { useTaskStore } from '../../src/store/taskStore';
 import { Folder } from '../../src/types/types';
 
@@ -89,6 +88,17 @@ export default function FoldersScreen() {
   const [selectedIcon, setSelectedIcon] = useState('folder');
   const [showIconPicker, setShowIconPicker] = useState(false);
 
+  const handleCreateFolder = useCallback(() => {
+    if (newFolderName.trim()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      addFolder(newFolderName.trim(), selectedIcon);
+      setNewFolderName('');
+      setSelectedIcon('folder');
+      setIsCreateModalVisible(false);
+      setShowIconPicker(false);
+    }
+  }, [newFolderName, selectedIcon, addFolder]);
+
   // Pre-compute all task counts at once - O(n) instead of O(n*m)
   const taskCountByFolder = useMemo(() => {
     const counts = new Map<string, number>();
@@ -112,17 +122,6 @@ export default function FoldersScreen() {
     },
     [selectionMode, toggleFolderSelection]
   );
-
-  const handleCreateFolder = useCallback(() => {
-    if (newFolderName.trim()) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      addFolder(newFolderName.trim(), selectedIcon);
-      setNewFolderName('');
-      setSelectedIcon('folder');
-      setIsCreateModalVisible(false);
-      setShowIconPicker(false);
-    }
-  }, [newFolderName, selectedIcon, addFolder]);
 
   const handleDeleteSelected = useCallback(() => {
     const selectedIds = Array.from(selectedFolders);
@@ -197,7 +196,7 @@ export default function FoldersScreen() {
           style={styles.fab}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            if (Platform.OS === 'android') {
+            if (isNativeSheetsAvailable) {
               // Defer native call to allow button animation to complete
               InteractionManager.runAfterInteractions(async () => {
                 const result = await showM3FolderCreationSheet();
@@ -207,6 +206,7 @@ export default function FoldersScreen() {
                 }
               });
             } else {
+              // Fallback to React Native modal
               setIsCreateModalVisible(true);
             }
           }}
@@ -215,91 +215,90 @@ export default function FoldersScreen() {
         </Pressable>
       )}
 
-      {/* Create Folder Modal */}
-      <Modal
-        visible={isCreateModalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setIsCreateModalVisible(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setIsCreateModalVisible(false)}
+      {/* Fallback Create Folder Modal when native sheets aren't available */}
+      {!isNativeSheetsAvailable && (
+        <Modal
+          visible={isCreateModalVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setIsCreateModalVisible(false)}
         >
-          <Pressable style={styles.modalContent} onPress={e => e.stopPropagation()}>
-            <View style={styles.dragHandle} />
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setIsCreateModalVisible(false)}
+          >
+            <Pressable style={styles.modalContent} onPress={e => e.stopPropagation()}>
+              <View style={styles.dragHandle} />
 
-            <View style={styles.createForm}>
-              <TextInput
-                style={styles.input}
-                placeholder="Folder name"
-                placeholderTextColor={Colors.light.textSecondary}
-                value={newFolderName}
-                onChangeText={setNewFolderName}
-                autoFocus
-              />
-
-              {/* Icon selector */}
-              <Pressable
-                style={styles.iconSelector}
-                onPress={() => setShowIconPicker(!showIconPicker)}
-              >
-                <Icon
-                  name={FOLDER_ICON_MAP[selectedIcon] || 'folder'}
-                  size={24}
-                  color={Colors.light.text}
+              <View style={styles.createForm}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Folder name"
+                  placeholderTextColor={Colors.light.textSecondary}
+                  value={newFolderName}
+                  onChangeText={setNewFolderName}
+                  autoFocus
                 />
-                <Icon
-                  name={showIconPicker ? 'chevron-up' : 'chevron-down'}
-                  size={20}
-                  color={Colors.light.textSecondary}
-                />
-              </Pressable>
 
-              {/* Save button */}
-              <Pressable
-                style={[
-                  styles.saveButton,
-                  !newFolderName.trim() && styles.saveButtonDisabled,
-                ]}
-                onPress={handleCreateFolder}
-                disabled={!newFolderName.trim()}
-              >
-                <Icon name="tick-circle" size={36} color="#FFFFFF" variant="Bold" />
-              </Pressable>
-            </View>
+                <Pressable
+                  style={styles.iconSelector}
+                  onPress={() => setShowIconPicker(!showIconPicker)}
+                >
+                  <Icon
+                    name={FOLDER_ICON_MAP[selectedIcon] || 'folder'}
+                    size={24}
+                    color={Colors.light.text}
+                  />
+                  <Icon
+                    name={showIconPicker ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={Colors.light.textSecondary}
+                  />
+                </Pressable>
 
-            {/* Icon picker grid */}
-            {showIconPicker && (
-              <View style={styles.iconGrid}>
-                {AVAILABLE_FOLDER_ICONS.map(icon => (
-                  <Pressable
-                    key={icon}
-                    style={[
-                      styles.iconOption,
-                      selectedIcon === icon && styles.iconOptionSelected,
-                    ]}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setSelectedIcon(icon);
-                    }}
-                  >
-                    <Icon
-                      name={FOLDER_ICON_MAP[icon] || 'folder'}
-                      size={24}
-                      color={
-                        selectedIcon === icon
-                          ? Colors.light.primary
-                          : Colors.light.text
-                      }
-                    />
-                  </Pressable>
-                ))}
+                <Pressable
+                  style={[
+                    styles.saveButton,
+                    !newFolderName.trim() && styles.saveButtonDisabled,
+                  ]}
+                  onPress={handleCreateFolder}
+                  disabled={!newFolderName.trim()}
+                >
+                  <Icon name="tick-circle" size={36} color="#FFFFFF" variant="Bold" />
+                </Pressable>
               </View>
-            )}
+
+              {showIconPicker && (
+                <View style={styles.iconGrid}>
+                  {AVAILABLE_FOLDER_ICONS.map(icon => (
+                    <Pressable
+                      key={icon}
+                      style={[
+                        styles.iconOption,
+                        selectedIcon === icon && styles.iconOptionSelected,
+                      ]}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setSelectedIcon(icon);
+                      }}
+                    >
+                      <Icon
+                        name={FOLDER_ICON_MAP[icon] || 'folder'}
+                        size={24}
+                        color={
+                          selectedIcon === icon
+                            ? Colors.light.primary
+                            : Colors.light.text
+                        }
+                      />
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </Modal>
+      )}
 
       <ViewSettingsSheet
         visible={viewSettingsVisible}
@@ -372,27 +371,6 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 16,
     backgroundColor: Colors.light.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  fabAddIcon: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-  },
-  deleteFab: {
-    position: 'absolute',
-    bottom: 16,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.light.error,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

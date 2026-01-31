@@ -3,16 +3,15 @@ import {
   View,
   Text,
   StyleSheet,
-  Platform,
   InteractionManager,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../store/taskStore';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
+import { Colors, Spacing, FontSizes } from '../constants/theme';
 import { SortOption } from '../types/types';
 import { NativeSwitch, NativeBottomSheet, NativeDropdown } from './native';
-import { showM3SettingsSheet, addSettingsChangeListener, SettingsChangeEvent } from 'material3-expressive';
+import { showM3SettingsSheet, addSettingsChangeListener, SettingsChangeEvent, isNativeSheetsAvailable } from 'material3-expressive';
 import { Icon, IconName } from './Icon';
 
 interface ViewSettingsSheetProps {
@@ -52,7 +51,7 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
 
   // Listen for real-time settings changes from native sheet
   useEffect(() => {
-    if (visible && Platform.OS === 'android') {
+    if (visible && isNativeSheetsAvailable) {
       const subscription = addSettingsChangeListener((event: SettingsChangeEvent) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
@@ -75,9 +74,9 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
     }
   }, [visible, setShowCompletedInToday, setShowFolderNames, setSortOption]);
 
-  // Use native Android sheet - defer to allow animations to complete first
+  // Use native sheet if available - defer to allow animations to complete first
   useEffect(() => {
-    if (visible && Platform.OS === 'android') {
+    if (visible && isNativeSheetsAvailable) {
       // Wait for any ongoing animations/interactions to complete before showing native sheet
       const handle = InteractionManager.runAfterInteractions(() => {
         const currentSortIndex = SORT_OPTIONS.findIndex(o => o.value === sortOption);
@@ -102,8 +101,8 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
     }
   }, [visible]);
 
-  // iOS fallback
-  if (Platform.OS === 'android') {
+  // If native sheets available, render nothing (sheet is shown imperatively)
+  if (isNativeSheetsAvailable) {
     return null;
   }
 
@@ -125,69 +124,68 @@ const ViewSettingsSheetComponent: React.FC<ViewSettingsSheetProps> = ({
 
   const currentSortIndex = SORT_OPTIONS.findIndex(o => o.value === sortOption);
 
+  // Fallback to React Native bottom sheet
   return (
     <NativeBottomSheet visible={visible} onClose={onClose}>
       <View style={styles.cardsContainer}>
         {/* Toggles Card */}
         <View style={styles.settingsCard}>
-        {/* Completed Tasks Toggle */}
-        <View style={styles.settingRow}>
-          <View style={styles.settingLeft}>
-            <Icon name="tick-circle" size={22} color={Colors.light.text} variant="Bold" />
-            <Text style={styles.settingLabel}>Completed tasks</Text>
+          <View style={styles.settingRow}>
+            <View style={styles.settingLeft}>
+              <Icon name="tick-circle" size={22} color={Colors.light.text} variant="Bold" />
+              <Text style={styles.settingLabel}>Completed tasks</Text>
+            </View>
+            <NativeSwitch
+              value={showCompletedInToday}
+              onValueChange={handleToggleCompleted}
+            />
           </View>
-          <NativeSwitch
-            value={showCompletedInToday}
-            onValueChange={handleToggleCompleted}
-          />
+
+          <View style={styles.divider} />
+
+          <View style={styles.settingRow}>
+            <View style={styles.settingLeft}>
+              <Icon name="folder" size={22} color={Colors.light.text} variant="Bold" />
+              <Text style={styles.settingLabel}>Folder</Text>
+            </View>
+            <NativeSwitch
+              value={showFolderNames}
+              onValueChange={handleToggleFolderNames}
+            />
+          </View>
         </View>
 
-        <View style={styles.divider} />
-
-        {/* Folder Names Toggle */}
-        <View style={styles.settingRow}>
-          <View style={styles.settingLeft}>
-            <Icon name="folder" size={22} color={Colors.light.text} variant="Bold" />
-            <Text style={styles.settingLabel}>Folder</Text>
-          </View>
-          <NativeSwitch
-            value={showFolderNames}
-            onValueChange={handleToggleFolderNames}
-          />
-        </View>
-      </View>
-
-      {/* Sort Card */}
-      <View style={styles.settingsCard}>
-        <View style={styles.settingRow}>
-          <View style={styles.settingLeft}>
-            <Icon name="sort" size={22} color={Colors.light.text} variant="Bold" />
-            <Text style={styles.settingLabel}>Sort</Text>
-          </View>
-          <NativeDropdown
-            options={SORT_OPTIONS.map(o => o.label)}
-            selectedIndex={currentSortIndex >= 0 ? currentSortIndex : 0}
-            onSelectionChange={(index) => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setSortOption(SORT_OPTIONS[index].value);
-            }}
-          />
-        </View>
-      </View>
-
-      {/* Group Card */}
-      <View style={styles.settingsCard}>
-        <View style={[styles.settingRow, styles.disabledRow]}>
-          <View style={styles.settingLeft}>
-            <Icon name="category" size={22} color={Colors.light.textSecondary} variant="Broken" />
-            <Text style={[styles.settingLabel, styles.disabledText]}>Group</Text>
-          </View>
-          <View style={styles.dropdownButton}>
-            <Text style={[styles.dropdownText, styles.disabledText]}>None</Text>
-            <Icon name="chevron-down" size={16} color={Colors.light.textSecondary} />
+        {/* Sort Card */}
+        <View style={styles.settingsCard}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingLeft}>
+              <Icon name="sort" size={22} color={Colors.light.text} variant="Bold" />
+              <Text style={styles.settingLabel}>Sort</Text>
+            </View>
+            <NativeDropdown
+              options={SORT_OPTIONS.map(o => o.label)}
+              selectedIndex={currentSortIndex >= 0 ? currentSortIndex : 0}
+              onSelectionChange={(index) => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSortOption(SORT_OPTIONS[index].value);
+              }}
+            />
           </View>
         </View>
-      </View>
+
+        {/* Group Card */}
+        <View style={styles.settingsCard}>
+          <View style={[styles.settingRow, styles.disabledRow]}>
+            <View style={styles.settingLeft}>
+              <Icon name="category" size={22} color={Colors.light.textSecondary} variant="Broken" />
+              <Text style={[styles.settingLabel, styles.disabledText]}>Group</Text>
+            </View>
+            <View style={styles.dropdownButton}>
+              <Text style={[styles.dropdownText, styles.disabledText]}>None</Text>
+              <Icon name="chevron-down" size={16} color={Colors.light.textSecondary} />
+            </View>
+          </View>
+        </View>
       </View>
     </NativeBottomSheet>
   );

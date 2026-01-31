@@ -5,13 +5,12 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
-  Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTaskStore } from '../store/taskStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { NativeBottomSheet } from './native';
-import { showM3SelectionSheet } from 'material3-expressive';
+import { showM3SelectionSheet, isNativeSheetsAvailable } from 'material3-expressive';
 import { Icon, FOLDER_ICON_MAP, MATERIAL_ICON_MAP, IconName } from './Icon';
 
 interface MoveToFolderSheetProps {
@@ -32,9 +31,9 @@ export const MoveToFolderSheet: React.FC<MoveToFolderSheetProps> = ({
   // Filter out Completed folder for move options
   const availableFolders = folders.filter(f => f.name !== 'Completed');
 
-  // Use native Android sheet
+  // Use native sheet if available
   useEffect(() => {
-    if (visible && Platform.OS === 'android') {
+    if (visible && isNativeSheetsAvailable) {
       showM3SelectionSheet({
         title: 'Move to folder',
         subtitle: `${taskIds.length} task${taskIds.length !== 1 ? 's' : ''} selected`,
@@ -55,11 +54,12 @@ export const MoveToFolderSheet: React.FC<MoveToFolderSheetProps> = ({
     }
   }, [visible]);
 
-  // iOS fallback
-  if (Platform.OS === 'android') {
+  // If native sheets available, render nothing (sheet is shown imperatively)
+  if (isNativeSheetsAvailable) {
     return null;
   }
 
+  // Fallback to React Native bottom sheet
   const handleFolderSelect = useCallback((folderName: string) => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     moveTasksToFolder(taskIds, folderName);
@@ -104,28 +104,6 @@ export const MoveToFolderSheet: React.FC<MoveToFolderSheetProps> = ({
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'flex-end',
-  },
-  content: {
-    backgroundColor: Colors.light.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    maxHeight: '70%',
-  },
-  dragHandle: {
-    width: 36,
-    height: 4,
-    backgroundColor: Colors.light.border,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
   title: {
     fontSize: FontSizes.lg,
     fontWeight: '600',
