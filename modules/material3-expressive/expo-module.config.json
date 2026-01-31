@@ -4,6 +4,7 @@
     "modules": ["expo.modules.material3expressive.Material3ExpressiveModule"]
   },
   "ios": {
-    "modules": ["Material3ExpressiveModule"]
+    "modules": ["Material3ExpressiveModule"],
+    "podspecPath": "./ios/Material3Expressive.podspec"
   }
 }
