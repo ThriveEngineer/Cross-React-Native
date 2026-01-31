@@ -231,84 +231,133 @@ struct SettingsSheet: View {
     }
 
     var body: some View {
-        NavigationView {
-            List {
-                if !toggles.isEmpty {
-                    Section {
-                        ForEach(toggles) { toggle in
+        VStack(spacing: 0) {
+            // Header with Cancel, Title, Done buttons
+            HStack {
+                Button(action: {
+                    onDismiss(toggleStates, dropdownStates)
+                }) {
+                    Text("Cancel")
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray6))
+                        .clipShape(Capsule())
+                }
+
+                Spacer()
+
+                Text("View Settings")
+                    .font(.headline)
+
+                Spacer()
+
+                Button(action: {
+                    onDismiss(toggleStates, dropdownStates)
+                }) {
+                    Text("Done")
+                        .font(.subheadline.bold())
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray6))
+                        .clipShape(Capsule())
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 20)
+
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Toggles card
+                    if !toggles.isEmpty {
+                        VStack(spacing: 0) {
+                            ForEach(Array(toggles.enumerated()), id: \.element.id) { index, toggle in
+                                HStack {
+                                    if let iconName = toggle.icon {
+                                        Image(systemName: IconMapper.systemName(for: iconName))
+                                            .foregroundColor(.primary)
+                                            .frame(width: 24)
+                                    }
+
+                                    Text(toggle.title)
+                                        .font(.body)
+
+                                    Spacer()
+
+                                    Toggle("", isOn: Binding(
+                                        get: { toggleStates[toggle.id] ?? toggle.value },
+                                        set: { newValue in
+                                            toggleStates[toggle.id] = newValue
+                                            onSettingsChange([
+                                                "type": "toggle",
+                                                "id": toggle.id,
+                                                "value": newValue
+                                            ])
+                                        }
+                                    ))
+                                    .labelsHidden()
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 14)
+
+                                if index < toggles.count - 1 {
+                                    Divider()
+                                        .padding(.leading, 56)
+                                }
+                            }
+                        }
+                        .background(Color.white)
+                        .cornerRadius(16)
+                        .padding(.horizontal, 20)
+                    }
+
+                    // Dropdowns
+                    ForEach(dropdowns) { dropdown in
+                        VStack(spacing: 0) {
                             HStack {
-                                if let iconName = toggle.icon {
+                                if let iconName = dropdown.icon {
                                     Image(systemName: IconMapper.systemName(for: iconName))
                                         .foregroundColor(.primary)
                                         .frame(width: 24)
                                 }
 
-                                Text(toggle.title)
+                                Text(dropdown.title)
+                                    .font(.body)
 
                                 Spacer()
 
-                                Toggle("", isOn: Binding(
-                                    get: { toggleStates[toggle.id] ?? toggle.value },
+                                Picker("", selection: Binding(
+                                    get: { dropdownStates[dropdown.id] ?? dropdown.selectedIndex },
                                     set: { newValue in
-                                        toggleStates[toggle.id] = newValue
+                                        dropdownStates[dropdown.id] = newValue
                                         onSettingsChange([
-                                            "type": "toggle",
-                                            "id": toggle.id,
+                                            "type": "dropdown",
+                                            "id": dropdown.id,
                                             "value": newValue
                                         ])
                                     }
-                                ))
-                                .labelsHidden()
-                            }
-                        }
-                    }
-                }
-
-                ForEach(dropdowns) { dropdown in
-                    Section {
-                        HStack {
-                            if let iconName = dropdown.icon {
-                                Image(systemName: IconMapper.systemName(for: iconName))
-                                    .foregroundColor(.primary)
-                                    .frame(width: 24)
-                            }
-
-                            Text(dropdown.title)
-
-                            Spacer()
-
-                            Picker("", selection: Binding(
-                                get: { dropdownStates[dropdown.id] ?? dropdown.selectedIndex },
-                                set: { newValue in
-                                    dropdownStates[dropdown.id] = newValue
-                                    onSettingsChange([
-                                        "type": "dropdown",
-                                        "id": dropdown.id,
-                                        "value": newValue
-                                    ])
+                                )) {
+                                    ForEach(Array(dropdown.options.enumerated()), id: \.offset) { index, option in
+                                        Text(option).tag(index)
+                                    }
                                 }
-                            )) {
-                                ForEach(Array(dropdown.options.enumerated()), id: \.offset) { index, option in
-                                    Text(option).tag(index)
-                                }
+                                .pickerStyle(.menu)
                             }
-                            .pickerStyle(.menu)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 14)
                         }
+                        .background(Color.white)
+                        .cornerRadius(16)
+                        .padding(.horizontal, 20)
                     }
                 }
-            }
-            .listStyle(.insetGrouped)
-            .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        onDismiss(toggleStates, dropdownStates)
-                    }
-                    .font(.body.bold())
-                }
+                .padding(.bottom, 20)
             }
         }
+        .background(Color(.systemGroupedBackground))
     }
 }
 
@@ -366,124 +415,82 @@ struct TaskCreationSheet: View {
     }
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 16) {
-                // Task name input row with checkmark in same row
-                HStack(spacing: 12) {
-                    TextField("Task title", text: $taskName)
-                        .textFieldStyle(.plain)
-                        .font(.body)
-                        .focused($isTextFieldFocused)
-                        .submitLabel(.done)
-                        .onSubmit {
-                            submitIfValid()
-                        }
-
-                    Button(action: submitIfValid) {
-                        Image(systemName: "checkmark")
-                            .font(.body.bold())
-                            .foregroundColor(taskName.trimmingCharacters(in: .whitespaces).isEmpty ? .secondary : .white)
-                            .frame(width: 36, height: 36)
-                            .background(taskName.trimmingCharacters(in: .whitespaces).isEmpty ? Color(.systemGray5) : Color.accentColor)
-                            .clipShape(Circle())
+        VStack(spacing: 16) {
+            // Task name input row with checkmark in same row
+            HStack(spacing: 12) {
+                TextField("Task title", text: $taskName)
+                    .textFieldStyle(.plain)
+                    .font(.body)
+                    .focused($isTextFieldFocused)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        submitIfValid()
                     }
-                    .disabled(taskName.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
-                .padding(.horizontal)
 
-                // Folder and date chips - under task name with grey outline and white background
+                Button(action: submitIfValid) {
+                    Image(systemName: "checkmark")
+                        .font(.body.bold())
+                        .foregroundColor(taskName.trimmingCharacters(in: .whitespaces).isEmpty ? .secondary : .white)
+                        .frame(width: 36, height: 36)
+                        .background(taskName.trimmingCharacters(in: .whitespaces).isEmpty ? Color(.systemGray5) : Color(.label))
+                        .clipShape(Circle())
+                }
+                .disabled(taskName.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            .padding(.horizontal, 20)
+
+            // Folder chips - horizontal scroll
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    // Folder picker
-                    Menu {
-                        ForEach(Array(folders.enumerated()), id: \.offset) { index, folder in
-                            Button(action: {
-                                folderIndex = index
-                            }) {
-                                Label(folder, systemImage: iconForFolder(folder))
-                                if index == folderIndex {
-                                    Image(systemName: "checkmark")
-                                }
+                    ForEach(Array(folders.enumerated()), id: \.offset) { index, folder in
+                        Button(action: {
+                            folderIndex = index
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: iconForFolder(folder))
+                                    .font(.subheadline)
+                                Text(folder)
+                                    .font(.subheadline)
                             }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .background(Color.white)
+                            .foregroundColor(index == folderIndex ? .primary : .secondary)
+                            .overlay(
+                                Capsule()
+                                    .stroke(index == folderIndex ? Color(.label) : Color(.systemGray4), lineWidth: index == folderIndex ? 1.5 : 1)
+                            )
+                            .clipShape(Capsule())
                         }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: iconForFolder(folders[safe: folderIndex] ?? "Inbox"))
-                                .font(.caption)
-                            Text(folders[safe: folderIndex] ?? "Inbox")
-                                .font(.subheadline)
-                            Image(systemName: "chevron.down")
-                                .font(.caption2)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.white)
-                        .foregroundColor(.primary)
-                        .overlay(
-                            Capsule()
-                                .stroke(Color(.systemGray4), lineWidth: 1)
-                        )
-                        .clipShape(Capsule())
-                    }
-
-                    // Date picker
-                    Button(action: {
-                        showDatePicker = true
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "calendar")
-                                .font(.caption)
-                            Text(dateText)
-                                .font(.subheadline)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.white)
-                        .foregroundColor(hasSelectedDate ? .accentColor : .primary)
-                        .overlay(
-                            Capsule()
-                                .stroke(Color(.systemGray4), lineWidth: 1)
-                        )
-                        .clipShape(Capsule())
-                    }
-
-                    Spacer()
-                }
-                .padding(.horizontal)
-
-                Spacer()
-            }
-            .padding(.top)
-            .navigationTitle("New Task")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        onCancel()
                     }
                 }
+                .padding(.horizontal, 20)
             }
-            .sheet(isPresented: $showDatePicker) {
-                DatePickerSheet(
-                    initialDate: selectedDate,
-                    title: "Due Date",
-                    onSelect: { date in
-                        selectedDate = date
-                        hasSelectedDate = true
-                        showDatePicker = false
-                    },
-                    onCancel: {
-                        showDatePicker = false
-                    }
-                )
-                .presentationDetents([.medium])
-            }
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    isTextFieldFocused = true
+
+            Spacer()
+        }
+        .padding(.top, 20)
+        .liquidGlassBackground()
+        .sheet(isPresented: $showDatePicker) {
+            DatePickerSheet(
+                initialDate: selectedDate,
+                title: "Due Date",
+                onSelect: { date in
+                    selectedDate = date
+                    hasSelectedDate = true
+                    showDatePicker = false
+                },
+                onCancel: {
+                    showDatePicker = false
                 }
+            )
+            .presentationDetents([.medium])
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                isTextFieldFocused = true
             }
         }
-        .liquidGlassBackground()
     }
 
     private func submitIfValid() {
@@ -503,99 +510,47 @@ struct FolderCreationSheet: View {
 
     @State private var folderName: String = ""
     @State private var selectedIcon: String = "folder"
-    @State private var showIconPicker: Bool = false
     @FocusState private var isTextFieldFocused: Bool
 
-    private let availableIcons = [
-        "folder", "heart", "star", "bookmark", "flag",
-        "briefcase", "home", "cart", "gift", "lightbulb",
-        "fitness", "music"
-    ]
-
     var body: some View {
-        NavigationView {
-            VStack(spacing: 16) {
-                // Folder name input row
-                HStack(spacing: 12) {
-                    // Icon button
-                    Button(action: {
-                        withAnimation {
-                            showIconPicker.toggle()
-                        }
-                    }) {
-                        Image(systemName: IconMapper.systemName(for: selectedIcon))
-                            .font(.title2)
-                            .foregroundColor(.secondary)
-                            .frame(width: 44, height: 44)
-                            .background(Color(.systemGray6))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+        VStack(spacing: 16) {
+            // Folder name input row with icon and checkmark
+            HStack(spacing: 12) {
+                // Folder icon
+                Image(systemName: "folder")
+                    .font(.title2)
+                    .foregroundColor(.secondary)
+
+                TextField("Folder title", text: $folderName)
+                    .textFieldStyle(.plain)
+                    .font(.body)
+                    .focused($isTextFieldFocused)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        submitIfValid()
                     }
 
-                    TextField("Folder title", text: $folderName)
-                        .textFieldStyle(.plain)
-                        .font(.body)
-                        .focused($isTextFieldFocused)
-                        .submitLabel(.done)
-                        .onSubmit {
-                            submitIfValid()
-                        }
-
-                    Button(action: submitIfValid) {
-                        Image(systemName: "checkmark")
-                            .font(.body.bold())
-                            .foregroundColor(folderName.trimmingCharacters(in: .whitespaces).isEmpty ? .secondary : .white)
-                            .frame(width: 36, height: 36)
-                            .background(folderName.trimmingCharacters(in: .whitespaces).isEmpty ? Color(.systemGray5) : Color.accentColor)
-                            .clipShape(Circle())
-                    }
-                    .disabled(folderName.trimmingCharacters(in: .whitespaces).isEmpty)
+                Button(action: submitIfValid) {
+                    Image(systemName: "checkmark")
+                        .font(.body.bold())
+                        .foregroundColor(folderName.trimmingCharacters(in: .whitespaces).isEmpty ? .secondary : .white)
+                        .frame(width: 36, height: 36)
+                        .background(folderName.trimmingCharacters(in: .whitespaces).isEmpty ? Color(.systemGray5) : Color(.label))
+                        .clipShape(Circle())
                 }
-                .padding(.horizontal)
-
-                // Icon picker grid
-                if showIconPicker {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(availableIcons, id: \.self) { iconName in
-                                Button(action: {
-                                    selectedIcon = iconName
-                                    withAnimation {
-                                        showIconPicker = false
-                                    }
-                                }) {
-                                    Image(systemName: IconMapper.systemName(for: iconName))
-                                        .font(.title3)
-                                        .foregroundColor(selectedIcon == iconName ? .accentColor : .secondary)
-                                        .frame(width: 48, height: 48)
-                                        .background(selectedIcon == iconName ? Color.accentColor.opacity(0.15) : Color(.systemGray6))
-                                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
-
-                Spacer()
+                .disabled(folderName.trimmingCharacters(in: .whitespaces).isEmpty)
             }
-            .padding(.top)
-            .navigationTitle("New Folder")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        onCancel()
-                    }
-                }
-            }
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    isTextFieldFocused = true
-                }
+            .padding(.horizontal, 20)
+
+            Spacer()
+        }
+        .padding(.top, 20)
+        .liquidGlassBackground()
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                isTextFieldFocused = true
             }
         }
-        .liquidGlassBackground()
     }
 
     private func submitIfValid() {

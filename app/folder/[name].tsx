@@ -19,7 +19,6 @@ import { useTaskStore } from '../../src/store/taskStore';
 import { notionAutoSync } from '../../src/services/notionService';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../src/constants/theme';
 import { Icon, FOLDER_ICON_MAP, IconName } from '../../src/components/Icon';
-import { showM3TaskCreationSheet, isNativeSheetsAvailable } from 'material3-expressive';
 
 // Try to import GlassView for Liquid Glass effect
 let GlassView: any = null;
@@ -72,29 +71,7 @@ export default function FolderDetailScreen() {
     moveTasksToFolder,
     clearSelection,
     sortOption,
-    addTask,
   } = useTaskStore();
-
-  const availableFolders = folders.filter(f => f.name !== 'Completed');
-  const defaultFolderIndex = Math.max(0, availableFolders.findIndex(f => f.name === folderName));
-
-  const handleAddPress = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    if (Platform.OS === 'ios' && isNativeSheetsAvailable) {
-      showM3TaskCreationSheet({
-        folders: availableFolders.map(f => f.name),
-        selectedFolderIndex: defaultFolderIndex,
-      }).then((result) => {
-        if (!result.cancelled && result.taskName) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          const targetFolder = availableFolders[result.folderIndex ?? 0]?.name ?? folderName;
-          const dueDate = result.dueDateMillis ? new Date(result.dueDateMillis).toISOString() : undefined;
-          addTask(result.taskName, targetFolder, dueDate);
-        }
-      });
-    }
-  }, [availableFolders, defaultFolderIndex, folderName, addTask]);
 
   // Get tasks for this folder
   const folderTasks = useMemo(() => {
@@ -177,37 +154,20 @@ export default function FolderDetailScreen() {
 
   const hasSelection = selectedTasks.size > 0;
 
-  const Header = () => {
-    const useGlass = Platform.OS === 'ios' && GlassView && isLiquidGlassAvailable();
-
-    return (
-      <View style={styles.header}>
-        <GlassBackButton onPress={() => router.back()} />
-        <View style={styles.headerCenter}>
-          <Icon name={iconName} size={22} color={Colors.light.text} />
-          <Text style={styles.title} numberOfLines={1}>
-            {folderName}
-          </Text>
-        </View>
-        <View style={styles.headerActions}>
-          <Text style={styles.taskCount}>{folderTasks.length}</Text>
-          {Platform.OS === 'ios' && !selectionMode && (
-            <Pressable onPress={handleAddPress}>
-              {useGlass ? (
-                <GlassView style={styles.glassAddButton} glassEffectStyle="regular">
-                  <Icon name="add" size={24} color={Colors.light.text} />
-                </GlassView>
-              ) : (
-                <View style={styles.addButton}>
-                  <Icon name="add" size={24} color={Colors.light.text} />
-                </View>
-              )}
-            </Pressable>
-          )}
-        </View>
+  const Header = () => (
+    <View style={styles.header}>
+      <GlassBackButton onPress={() => router.back()} />
+      <View style={styles.headerCenter}>
+        <Icon name={iconName} size={22} color={Colors.light.text} />
+        <Text style={styles.title} numberOfLines={1}>
+          {folderName}
+        </Text>
       </View>
-    );
-  };
+      <View style={styles.headerActions}>
+        <Text style={styles.taskCount}>{folderTasks.length}</Text>
+      </View>
+    </View>
+  );
 
   const selectedTaskIds = Array.from(selectedTasks);
 
@@ -221,7 +181,7 @@ export default function FolderDetailScreen() {
           subtitle="Add tasks to this folder to see them here"
           icon="folder-open"
         />
-        {Platform.OS === 'android' && <FloatingActionButton defaultFolder={folderName} />}
+        <FloatingActionButton defaultFolder={folderName} />
         {selectionMode && (
           <View style={styles.selectionBarContainer}>
             <Pressable
@@ -267,7 +227,7 @@ export default function FolderDetailScreen() {
         isRefreshing={isRefreshing}
         emptyMessage={`No tasks in ${folderName}`}
       />
-      {Platform.OS === 'android' && <FloatingActionButton defaultFolder={folderName} />}
+      <FloatingActionButton defaultFolder={folderName} />
       {selectionMode && (
         <View style={styles.selectionBarContainer}>
           <Pressable
@@ -339,24 +299,9 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    minWidth: 80,
+    gap: Spacing.md,
+    minWidth: 40,
     justifyContent: 'flex-end',
-  },
-  glassAddButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   taskCount: {
     fontSize: FontSizes.sm,

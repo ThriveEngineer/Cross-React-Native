@@ -172,7 +172,6 @@ export default function UpcomingScreen() {
       <CustomAppBar
         onOpenViewSettings={() => setViewSettingsVisible(true)}
         onOpenSettings={openSettings}
-        showAddButton={Platform.OS === 'ios'}
       />
 
       {/* Header */}
@@ -205,8 +204,8 @@ export default function UpcomingScreen() {
         />
       )}
 
-      {/* FAB - only on Android (iOS uses navbar button) */}
-      {Platform.OS === 'android' && <FloatingActionButton />}
+      {/* FAB */}
+      <FloatingActionButton />
 
       {/* Selection Mode Action Buttons */}
       {selectionMode && (

@@ -110,7 +110,6 @@ export default function TodayScreen() {
         <CustomAppBar
           onOpenViewSettings={() => setViewSettingsVisible(true)}
           onOpenSettings={openSettings}
-          showAddButton={Platform.OS === 'ios'}
         />
 
         {/* Header Row */}
@@ -174,7 +173,7 @@ export default function TodayScreen() {
         </ScrollView>
 
         {/* FAB - only on Android (iOS uses navbar button) */}
-        {Platform.OS === 'android' && <FloatingActionButton />}
+        <FloatingActionButton />
 
         {/* Selection Mode Action Buttons */}
         {selectionMode && (
@@ -247,7 +246,6 @@ export default function TodayScreen() {
       <CustomAppBar
         onOpenViewSettings={() => setViewSettingsVisible(true)}
         onOpenSettings={openSettings}
-        showAddButton={Platform.OS === 'ios'}
       />
 
       {/* Header Row */}
@@ -277,7 +275,7 @@ export default function TodayScreen() {
       )}
 
       {/* FAB - only on Android (iOS uses navbar button) */}
-      {Platform.OS === 'android' && <FloatingActionButton />}
+      <FloatingActionButton />
 
       {/* Selection Mode Action Buttons */}
       {selectionMode && (
