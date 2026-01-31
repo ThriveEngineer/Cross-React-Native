@@ -470,7 +470,7 @@ struct TaskCreationSheet: View {
             Spacer()
         }
         .padding(.top, 20)
-        .liquidGlassBackground()
+        .sheetGlassBackground()
         .sheet(isPresented: $showDatePicker) {
             DatePickerSheet(
                 initialDate: selectedDate,
@@ -545,7 +545,7 @@ struct FolderCreationSheet: View {
             Spacer()
         }
         .padding(.top, 20)
-        .liquidGlassBackground()
+        .sheetGlassBackground()
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 isTextFieldFocused = true
@@ -573,10 +573,21 @@ extension Array {
 extension View {
     @ViewBuilder
     func liquidGlassBackground() -> some View {
-        if #available(iOS 26.0, *) {
-            self.glassEffect(.regular)
-        } else {
-            self.background(.ultraThinMaterial)
+        self
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
+    }
+
+    @ViewBuilder
+    func sheetGlassBackground() -> some View {
+        ZStack {
+            // Blur background layer
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .ignoresSafeArea()
+
+            // Content layer
+            self
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

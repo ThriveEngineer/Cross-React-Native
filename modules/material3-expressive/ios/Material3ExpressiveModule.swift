@@ -221,7 +221,7 @@ public class Material3ExpressiveModule: Module {
             }
         ))
 
-        configureSheet(hostingController, detents: [.medium()])
+        configureSheetWithGlass(hostingController, detents: [.medium()])
         viewController.present(hostingController, animated: true)
     }
 
@@ -250,13 +250,28 @@ public class Material3ExpressiveModule: Module {
             }
         ))
 
-        configureSheet(hostingController, detents: [.medium()])
+        configureSheetWithGlass(hostingController, detents: [.medium()])
         viewController.present(hostingController, animated: true)
     }
 
     // MARK: - Helper Methods
 
     private func configureSheet(_ controller: UIViewController, detents: [UISheetPresentationController.Detent]) {
+        // Make the hosting controller's view background clear for glass effect
+        controller.view.backgroundColor = .clear
+
+        if let sheet = controller.sheetPresentationController {
+            sheet.detents = detents
+            sheet.prefersGrabberVisible = true
+            sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+            sheet.preferredCornerRadius = 28
+        }
+    }
+
+    private func configureSheetWithGlass(_ controller: UIViewController, detents: [UISheetPresentationController.Detent]) {
+        // Make the hosting controller's view background clear for glass effect
+        controller.view.backgroundColor = .clear
+
         if let sheet = controller.sheetPresentationController {
             sheet.detents = detents
             sheet.prefersGrabberVisible = true
