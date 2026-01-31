@@ -415,62 +415,63 @@ struct TaskCreationSheet: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            // Task name input row with checkmark in same row
-            HStack(spacing: 12) {
-                TextField("Task title", text: $taskName)
-                    .textFieldStyle(.plain)
-                    .font(.body)
-                    .focused($isTextFieldFocused)
-                    .submitLabel(.done)
-                    .onSubmit {
-                        submitIfValid()
-                    }
-
-                Button(action: submitIfValid) {
-                    Image(systemName: "checkmark")
-                        .font(.body.bold())
-                        .foregroundColor(taskName.trimmingCharacters(in: .whitespaces).isEmpty ? .secondary : .white)
-                        .frame(width: 36, height: 36)
-                        .background(taskName.trimmingCharacters(in: .whitespaces).isEmpty ? Color(.systemGray5) : Color(.label))
-                        .clipShape(Circle())
-                }
-                .disabled(taskName.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-            .padding(.horizontal, 20)
-
-            // Folder chips - horizontal scroll
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(Array(folders.enumerated()), id: \.offset) { index, folder in
-                        Button(action: {
-                            folderIndex = index
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: iconForFolder(folder))
-                                    .font(.subheadline)
-                                Text(folder)
-                                    .font(.subheadline)
-                            }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            .background(Color.white)
-                            .foregroundColor(index == folderIndex ? .primary : .secondary)
-                            .overlay(
-                                Capsule()
-                                    .stroke(index == folderIndex ? Color(.label) : Color(.systemGray4), lineWidth: index == folderIndex ? 1.5 : 1)
-                            )
-                            .clipShape(Capsule())
+        GlassSheetContent {
+            VStack(spacing: 16) {
+                // Task name input row with checkmark in same row
+                HStack(spacing: 12) {
+                    TextField("Task title", text: $taskName)
+                        .textFieldStyle(.plain)
+                        .font(.body)
+                        .focused($isTextFieldFocused)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            submitIfValid()
                         }
+
+                    Button(action: submitIfValid) {
+                        Image(systemName: "checkmark")
+                            .font(.body.bold())
+                            .foregroundColor(taskName.trimmingCharacters(in: .whitespaces).isEmpty ? .secondary : .white)
+                            .frame(width: 36, height: 36)
+                            .background(taskName.trimmingCharacters(in: .whitespaces).isEmpty ? Color(.systemGray5) : Color(.label))
+                            .clipShape(Circle())
                     }
+                    .disabled(taskName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
                 .padding(.horizontal, 20)
-            }
 
-            Spacer()
+                // Folder chips - horizontal scroll
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(Array(folders.enumerated()), id: \.offset) { index, folder in
+                            Button(action: {
+                                folderIndex = index
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: iconForFolder(folder))
+                                        .font(.subheadline)
+                                    Text(folder)
+                                        .font(.subheadline)
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                                .background(Color.white)
+                                .foregroundColor(index == folderIndex ? .primary : .secondary)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(index == folderIndex ? Color(.label) : Color(.systemGray4), lineWidth: index == folderIndex ? 1.5 : 1)
+                                )
+                                .clipShape(Capsule())
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+
+                Spacer()
+            }
+            .padding(.top, 20)
         }
-        .padding(.top, 20)
-        .sheetGlassBackground()
         .sheet(isPresented: $showDatePicker) {
             DatePickerSheet(
                 initialDate: selectedDate,
@@ -513,39 +514,40 @@ struct FolderCreationSheet: View {
     @FocusState private var isTextFieldFocused: Bool
 
     var body: some View {
-        VStack(spacing: 16) {
-            // Folder name input row with icon and checkmark
-            HStack(spacing: 12) {
-                // Folder icon
-                Image(systemName: "folder")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
+        GlassSheetContent {
+            VStack(spacing: 16) {
+                // Folder name input row with icon and checkmark
+                HStack(spacing: 12) {
+                    // Folder icon
+                    Image(systemName: "folder")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
 
-                TextField("Folder title", text: $folderName)
-                    .textFieldStyle(.plain)
-                    .font(.body)
-                    .focused($isTextFieldFocused)
-                    .submitLabel(.done)
-                    .onSubmit {
-                        submitIfValid()
+                    TextField("Folder title", text: $folderName)
+                        .textFieldStyle(.plain)
+                        .font(.body)
+                        .focused($isTextFieldFocused)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            submitIfValid()
+                        }
+
+                    Button(action: submitIfValid) {
+                        Image(systemName: "checkmark")
+                            .font(.body.bold())
+                            .foregroundColor(folderName.trimmingCharacters(in: .whitespaces).isEmpty ? .secondary : .white)
+                            .frame(width: 36, height: 36)
+                            .background(folderName.trimmingCharacters(in: .whitespaces).isEmpty ? Color(.systemGray5) : Color(.label))
+                            .clipShape(Circle())
                     }
-
-                Button(action: submitIfValid) {
-                    Image(systemName: "checkmark")
-                        .font(.body.bold())
-                        .foregroundColor(folderName.trimmingCharacters(in: .whitespaces).isEmpty ? .secondary : .white)
-                        .frame(width: 36, height: 36)
-                        .background(folderName.trimmingCharacters(in: .whitespaces).isEmpty ? Color(.systemGray5) : Color(.label))
-                        .clipShape(Circle())
+                    .disabled(folderName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
-                .disabled(folderName.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-            .padding(.horizontal, 20)
+                .padding(.horizontal, 20)
 
-            Spacer()
+                Spacer()
+            }
+            .padding(.top, 20)
         }
-        .padding(.top, 20)
-        .sheetGlassBackground()
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 isTextFieldFocused = true
@@ -573,21 +575,48 @@ extension Array {
 extension View {
     @ViewBuilder
     func liquidGlassBackground() -> some View {
-        self
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
+        if #available(iOS 26.0, *) {
+            self
+                .background(.clear)
+                .glassEffect(.regular)
+        } else {
+            self
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
+        }
     }
 
     @ViewBuilder
     func sheetGlassBackground() -> some View {
-        ZStack {
-            // Blur background layer
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .ignoresSafeArea()
-
-            // Content layer
+        if #available(iOS 26.0, *) {
             self
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .glassEffect(.regular)
+        } else {
+            self
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.ultraThinMaterial)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - Glass Effect Sheet Wrapper
+
+struct GlassSheetContent<Content: View>: View {
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        if #available(iOS 26.0, *) {
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .glassEffect(.regular)
+        } else {
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.ultraThinMaterial)
+        }
     }
 }
